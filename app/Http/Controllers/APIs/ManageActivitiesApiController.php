@@ -17,6 +17,44 @@ class ManageActivitiesApiController extends Controller
     }
 
     /**
+     * Created By : Vedant Chavan
+     * Created At : 04 July 2024
+     * Use : To get Activities Service
+     */
+
+    public function getActivity(){
+
+        try {
+            return $this->ManageActivitiesApiService->getActivitiesService();
+        } catch (Exception $ex) {
+            Log::error('add manage activities function failed: ' . $ex->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+
+    /**
+     * Created By : Vedant Chavan
+     * Created At : 04 July 2024
+     * Use : Store Activities to the user 
+     */
+
+    public function storeActivities(Request $request){
+
+        try {
+            $token = readHeaderToken();
+            if ($token) {
+                $iamprincipal_id = $token['sub'];
+                return $this->ManageActivitiesApiService->storeActivitiesService($request,$iamprincipal_id);
+            } else {
+                return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+            }
+        } catch (Exception $ex) {
+            Log::error('add manage activities function failed: ' . $ex->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+    /**
      * Created By : Chandan Yadav
      * Created At : 05 April 2024
      * Use : To add manage activities
