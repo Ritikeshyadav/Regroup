@@ -32,14 +32,18 @@ Route::middleware(['BasicAuthApi'])->group(function () {
         //registration API
         Route::post('/send_otp', [AuthApiController::class, 'sendOtp']);
         Route::post('/verify_otp', [AuthApiController::class, 'verifykOtp']);
-    
+        Route::post('/login', [AuthApiController::class, 'login']);
     //===================( End Registration & Login API'S For Regroup )===================//
 
+    //Activity API's
+
+        Route::get('/get_activity',[ManageActivitiesApiController::class,'getActivity']);
+        
 
     //===================( Registration & Login API'S )===================//
     Route::post('/registration_form', [AuthApiController::class, 'registrationForm']);
 
-    Route::post('/login', [AuthApiController::class, 'login']);
+    
 
     
     Route::post('/v1/forgot-password', [AuthApiController::class, 'forgotPassword']);
@@ -54,7 +58,9 @@ Route::middleware(['BasicAuthApi'])->group(function () {
         //Update Profile
         Route::post('/add_profile', [ProfileDetailsApiController::class, 'addProfile']);
 
+        //Store Activities
 
+        Route::post('/store_activities',[ManageActivitiesApiController::class,'storeActivities']);
         // ===================( Logout API'S )=========================//
         Route::get('/v1/user-logout', [LogoutApiController::class, 'userLogout']);
 
