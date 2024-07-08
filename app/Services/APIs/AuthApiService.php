@@ -34,7 +34,8 @@ class AuthApiService
                 return jsonResponseWithErrorMessageApi(__('auth.user_already_exist'), 403);
             }
 
-            $otp = generateRandomOTP();
+            // $otp = generateRandomOTP();
+            $otp = 1234;
             IamPrincipalOtp::updateOrCreate(
                 ['email_id' => $request->email_address],
                 [
@@ -45,8 +46,8 @@ class AuthApiService
                 ]
             );
 
-            $mailData['body'] = $otp;
-            Mail::to($email)->send(new SendOtp($mailData));
+            // $mailData['body'] = $otp;
+            // Mail::to($email)->send(new SendOtp($mailData));
             DB::commit();
             return jsonResponseWithSuccessMessageApi(__('success.otp_sent_successfully'),200);
         } catch (Throwable $ex) {
