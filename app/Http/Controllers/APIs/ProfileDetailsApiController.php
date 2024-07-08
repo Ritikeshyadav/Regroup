@@ -123,7 +123,7 @@ class ProfileDetailsApiController extends Controller
             [
                 'full_name' => 'required',
                 'username' => 'required',
-                'date_of_birth' => 'required',
+                'date_of_birth' => 'required|date_format:Y-m-d',
                 'gender' => 'required',
                 'profile_photo' => 'required',
                 'location' => 'required',
