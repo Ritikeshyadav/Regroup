@@ -9,14 +9,57 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use App\Models\ManageActivity;
+use App\Models\IamPrincipalManageAcivitiesLink;
 
 class ManageActivitiesApiService
 {
     /**
-     * Created By : Chandan Yadav
-     * Created At : 05 April 2024
-     * Use : To add manage activities service
+     * Created By : Vedant Chavan
+     * Created At : 04 July 2024
+     * Use : To get Activities Service
      */
+
+    public function getActivitiesService(){
+        try {
+            DB::beginTransaction();
+            $activities = ManageActivity::where('is_active',1)->get();
+            DB::commit();
+            $responseData['activities'] = $activities;
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'), $responseData, 200);
+        } catch (Exception $ex) {
+            DB::rollBack();
+            Log::error('add manage activities service function failed: ' . $ex->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    /**
+     * Created By : Vedant Chavan
+     * Created At : 04 July 2024
+     * Use : Store Activities to the user Service
+     */
+
+    public function storeActivitiesService(Request $request,$iamprincipal_id){
+        try {
+            DB::beginTransaction();
+
+                $activities_id = json_decode($request->input('activities_id'), true);
+
+                foreach($activities_id as $value){
+                    IamPrincipalManageAcivitiesLink::create([
+                        'iam_principal_xid' => $iamprincipal_id,
+                        'manage_activity_xid' => $value
+                    ]);
+                }
+            DB::commit();
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'), 201);
+        } catch (Exception $ex) {
+            DB::rollBack();
+            Log::error('add manage activities service function failed: ' . $ex->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
     public function addActivitiesService(Request $request, $iamprincipal_id)
     {
         try {
