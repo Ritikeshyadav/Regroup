@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class ManageCommunitiesApiService
 {
@@ -53,7 +54,11 @@ class ManageCommunitiesApiService
             {
                 return jsonResponseWithErrorMessageApi($validator->errors(), 422);   
             }
-            $storeUserSelectedCommunity = IamPrincipalManageCommunityLink::create(['iam_principal_xid'=>(int)$iamprincipal_id,'manage_community_xid'=>$request['manage_community_xid']]);
+            $storeUserSelectedCommunity = IamPrincipalManageCommunityLink::create([
+                'iam_principal_xid'=>(int)$iamprincipal_id,
+                'manage_community_xid'=>$request['manage_community_xid'],
+                'joined_at' => Carbon::now(),
+            ]);
             DB::commit();
             return jsonResponseWithSuccessMessageApi(__('success.save_data'), $storeUserSelectedCommunity, 201);
         }catch(Exception $e)
