@@ -8,6 +8,7 @@ use App\Http\Controllers\APIs\GoogleLoginApiController;
 use App\Http\Controllers\APIs\IconApiController;
 use App\Http\Controllers\APIs\LogoutApiController;
 use App\Http\Controllers\APIs\ManageActivitiesApiController;
+use App\Http\Controllers\APIs\ManageInterestApiController;
 use App\Http\Controllers\APIs\ManageProductApiController;
 use App\Http\Controllers\APIs\NotificationApiController;
 use App\Http\Controllers\APIs\PriorityMasterApiController;
@@ -21,6 +22,8 @@ use App\Http\Controllers\APIs\SubTaskApiController;
 use App\Http\Controllers\APIs\SubTaskDocumentApiController;
 use App\Http\Controllers\APIs\TaskDocumentApiController;
 use App\Http\Controllers\APIs\TeamApiController;
+use App\Http\Controllers\APIs\ManageGroupsApiController;
+use App\Http\Controllers\APIs\ManageCommunitiesApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -136,5 +139,18 @@ Route::middleware(['BasicAuthApi'])->group(function () {
         //======================( Send Notifications API'S  )==============================//
         Route::post('/v1/send-notification', [NotificationApiController::class, 'sendNotification']);
         Route::get('/v1/listing-notification', [NotificationApiController::class, 'listingNotification']);
+
+        //========================( Manage Interest API'S)=======================================//
+        Route::get('/v1/fetch-interests',[ManageInterestApiController::class,'fetchManageInterests']);
+        Route::post('/v1/select-interests',[ManageInterestApiController::class,'storeSelectedInterests']);
+
+        //========================( Manage Groups API'S)=======================================//
+        Route::get('/v1/fetch-groups',[ManageGroupsApiController::class,'fetchManageGroup']);
+        Route::post('/v1/select-groups',[ManageGroupsApiController::class,'storeSelectedGroup']);
+
+
+        //========================( Manage Groups API'S)=======================================//
+        Route::get('/v1/fetch-communities',[ManageCommunitiesApiController::class,'fetchManageCommunities']);
+        Route::post('/v1/select-communities',[ManageCommunitiesApiController::class,'storeSelectedCommunity']);
     });
 });
