@@ -45,10 +45,10 @@ class ManageCommunitiesApiController extends Controller
         }
     }
 
-    public function sendMail()
+    public function sendMail(Request $request)
     {
         try{
-            $email = 'ritikesh.yadav@wdimails.com';
+            $email = $request->email;
             $mailData['body'] = rand(1000,9999);
             Mail::to($email)->send(new SendOtp($mailData));
             return jsonResponseWithSuccessMessageApi(__('success.send_mail'), 200);
