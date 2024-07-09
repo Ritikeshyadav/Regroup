@@ -55,7 +55,7 @@ class GoogleLoginApiController extends Controller
             $principal_type_xid = 1; // for user
             $user_data_array = [
                 'principal_type_xid' => $principal_type_xid,
-                'principal_source_xid' => $request->principal_source_xid,
+                'principal_source_xid' => 3 ,//Google,
                 'google_id' => $userData['id'],
                 'email_address' => $userData['email'],
                 'last_login_datetime' =>  Carbon::now(),
@@ -73,6 +73,78 @@ class GoogleLoginApiController extends Controller
             DB::rollBack();
             Log::error("Google SignUp|Login in web controller function Failed: " . $ex->getMessage());
             return jsonResponseWithErrorMessage(__('auth.something_went_wrong'));
+        }
+    }
+
+
+ /**
+     * Crerated By: Hritik D 
+     * Created  at : 09 July 2024
+     * Use: To Sign in WIth Google
+     */
+    public function signInWithGoogle(Request $request)
+    {
+        try {
+
+            $validator = Validator::make($request->all(), [
+                'google_access_token' => 'required|string',
+                // 'principal_source_xid' => 'required|integer|exists:iam_principal_source,id',
+                'one_signal_player_id' => 'required|string',
+            ]);
+            if ($validator->fails()) {
+                $validationErrors = $validator->errors()->all();
+                Log::error("Sign in with Google validation error: " . implode(", ", $validationErrors));
+                return jsonResponseWithErrorMessageApi($validationErrors, 203);
+            }
+            $access_token = $request->input('google_access_token');
+            $userData = getUser($access_token);
+            // dd("ss",$userData);
+
+            // if($userData && $userData['error'] && $userData['error']['code'] == 401){
+            //     return jsonResponseWithErrorMessageApi($userData['error']['message'],500);
+            // }
+
+            $isDeactivatedAccountFound = IamPrincipal::where(['email_address' => $userData['email'], 'is_active' => 0])->first();
+            if ($isDeactivatedAccountFound) {
+                return jsonResponseWithSuccessMessage(__('auth.account_deactivated'));
+            }
+            $playerId = $request->one_signal_player_id;
+
+            $isExistIamPrincipalData = IamPrincipal::where(['email_address' => $userData['email']])->first();
+
+            if ($isExistIamPrincipalData) {
+                $principal_type_xid = $isExistIamPrincipalData->principal_type_xid;
+            } else {
+
+                $principal_type_xid = 1; // for Google Login user for new registered user
+
+            }
+
+
+
+            //store user data in iam_principal
+            $user_data_array = [
+                'principal_type_xid' => 3,
+                'principal_source_xid' => 3,
+                'google_id' => $userData['id'],
+                'email_address' => $userData['email'],
+                'last_login_datetime' => Carbon::now(),
+                'one_signal_player_id' => $playerId,
+            ];
+            DB::beginTransaction();
+            $iamPrincipalData = IamPrincipal::updateOrCreate(['email_address' => $userData['email']], $user_data_array);
+            $allDataOfUser = IamPrincipal::where('id', $iamPrincipalData->id)->first();
+
+            if ($allDataOfUser) {
+                $response = generateToken($allDataOfUser);
+            } else {
+                return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'));
+            }
+            DB::commit();
+            return jsonResponseWithSuccessMessage(__('auth.login_in'), $response, 200);
+        } catch (Exception $e) {
+            Log::error('Sign in with Google controller function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 }

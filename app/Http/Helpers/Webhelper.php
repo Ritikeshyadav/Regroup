@@ -133,7 +133,8 @@ if (!function_exists('generateToken')) {
             $iamPrincipalData->update(['last_login_datetime' => $now]);
             $token = JWTAuth::fromUser($iamPrincipalData);
             $responseData['access-token'] = $token;
-            $responseData['is_profile_updated'] = $iamPrincipalData->profile_updated;
+            $responseData['is_profile_updated'] = $iamPrincipalData->is_profile_updated;
+            $responseData['is_account_type_updated'] = $iamPrincipalData->principal_type_xid;
 
         }
         $accessToken = $token;
@@ -141,7 +142,8 @@ if (!function_exists('generateToken')) {
             'token' => $accessToken,
             'user_id' => $iamPrincipalData->id,
             'email' => $iamPrincipalData->email_address,
-            'is_profile_updated' => $iamPrincipalData->is_profile_updated
+            'is_profile_updated' => $iamPrincipalData->is_profile_updated,
+           'is_account_type_updated' => $iamPrincipalData->principal_type_xid,
         ];
         
         return $response;

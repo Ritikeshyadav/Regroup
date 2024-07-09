@@ -40,7 +40,8 @@ Route::middleware(['BasicAuthApi'])->group(function () {
         Route::post('/forgot-password', [AuthApiController::class, 'forgotPassword']);
         Route::post('/forgot-password/verify-otp', [AuthApiController::class, 'verifyOtpForgotPassword']);
         Route::post('/resend-otp', [AuthApiController::class, 'resendOtp']);
-        Route::post('/google-login', [GoogleLoginApiController::class, 'googleLogin'])->name('google.login');
+
+        Route::post('/sign-in-with-google-login', [GoogleLoginApiController::class, 'signInWithGoogle']);
         Route::post('/apple-login', [AppleLoginApiController::class, 'appleLogin'])->name('apple.login');
         Route::post('/facebook-login', [FacebookLoginApiController::class, 'facebookLogin'])->name('facebook.login');
     });
