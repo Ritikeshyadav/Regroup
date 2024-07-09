@@ -26,9 +26,10 @@ class AuthApiController extends Controller
      * Created at : 01 July 2024
      * Use : To send otp
      */
-    public function sendOtp(Request $request){
+    public function sendOtp(Request $request)
+    {
 
-        try{
+        try {
             $validator = $this->validateRegistrationForm($request);
             if ($validator->fails()) {
                 $validationErrors = $validator->errors()->all();
@@ -36,7 +37,7 @@ class AuthApiController extends Controller
                 return jsonResponseWithErrorMessageApi($validationErrors, 403);
             }
             return $this->AuthApiService->sendOtpService($request);
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             Log::error('Registration form controller function failed: ' . $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
@@ -46,9 +47,10 @@ class AuthApiController extends Controller
      * Created By : Vedant Chavan
      * Created at : 01 July 2024
      * Use : check otp and register
-    */
-    public function verifykOtp(Request $request){
-        try{
+     */
+    public function verifykOtp(Request $request)
+    {
+        try {
             $validator = $this->validateRegistrationForm($request);
             if ($validator->fails()) {
                 $validationErrors = $validator->errors()->all();
@@ -56,7 +58,7 @@ class AuthApiController extends Controller
                 return jsonResponseWithErrorMessageApi($validationErrors, 403);
             }
             return $this->AuthApiService->verifyOtpService($request);
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             Log::error('Registration form controller function failed: ' . $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
@@ -108,7 +110,8 @@ class AuthApiController extends Controller
      * Created at : 03 July 2024
      * Use : To validate User Profile Data
      */
-    public function validateUserDetails(Request $request){
+    public function validateUserDetails(Request $request)
+    {
         return Validator::make(
             $request->all(),
             [
@@ -118,7 +121,7 @@ class AuthApiController extends Controller
                 'gender' => 'required',
                 'profile_photo' => 'required',
                 'location' => 'required',
-                
+
             ],
         );
     }
@@ -276,4 +279,44 @@ class AuthApiController extends Controller
             ],
         );
     }
+
+
+
+   /**
+     * Created By : Hritik
+     * Created at : 09 July 2024
+     * Use : To get auth User data
+     */
+    public function getAuthUserDetails(Request $request)
+    {
+        try {
+            $token = readHeaderToken();
+            if ($token) {
+                
+               
+                $iamprincipal_id = $token['sub'];
+
+                $request['iam_principal_xid'] = $iamprincipal_id;
+                // return $this->AuthApiService->getAuthUserDataService($request);
+
+                $response = $this->AuthApiService->getAuthUserDataService($request);
+                return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $response, 200);
+          
+            } else {
+                return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+            }
+        } catch (Exception $ex) {
+            Log::error('add profile details function failed: ' . $ex->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    
+
+
+  
 }
+
+
+
+

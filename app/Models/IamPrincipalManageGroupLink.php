@@ -12,5 +12,11 @@ class IamPrincipalManageGroupLink extends Model
 
     protected $table = 'iam_principal_manage_group_links';
 
-    protected $fillable = ['iam_principal_xid','manage_group_xid'];
+    protected $guarded = [];
+    public function groupData()
+    {
+        return $this->hasOne(ManageGroup::class, 'id', 'manage_group_xid');
+    }
+
+    
 }
