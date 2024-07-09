@@ -13,4 +13,12 @@ class IamPrincipalManageCommunityLink extends Model
     protected $table = 'iam_principal_manage_community_links';
 
     protected $fillable = ['iam_principal_xid','manage_community_xid','joined_at','is_active'];
+
+
+
+    public function communityData()
+    {
+        return $this->hasOne(ManageCommunity::class, 'id', 'manage_community_xid');
+    }
+    
 }

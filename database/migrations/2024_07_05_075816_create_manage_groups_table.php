@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('manage_groups', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('manage_group_type_xid');
-            $table->string('title');
+            $table->string('title')->nullable();
             $table->string('background_image')->nullable();
             $table->string('group_image')->nullable();
-            $table->string('location');
-            $table->string('link');
-            $table->longText('description');
+            $table->string('location')->nullable();
+            $table->string('link')->nullable();
+            $table->longText('description')->nullable();
             $table->boolean('is_active',)->default(1)->comment('1=Active, 0=InActive');
             $table->foreign('manage_group_type_xid')->references('id')->on('manage_group_types')->onDelete('cascade');
             $table->integer('created_by')->nullable();

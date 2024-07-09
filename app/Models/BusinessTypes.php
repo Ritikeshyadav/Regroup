@@ -4,19 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class SpaceDocs extends Model
+class BusinessTypes extends Model
 {
     use HasFactory;
+
+
+
     use SoftDeletes;
 
-    protected $table = 'space_docs';
+    protected $table = 'business_types';
     protected $dates = ['deleted_at'];
 
-    protected $fillable = [
-        'doc_name',
-        'file',
-        'is_active',
-    ];
+    protected $guarded =
+        [];
+
 }

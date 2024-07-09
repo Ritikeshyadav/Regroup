@@ -34,6 +34,7 @@ class ProfileDetailsApiService
                  'gender' => $request->gender,
                  'address_line1' => $request->location,
                  'profile_photo' => $profilePath,
+                 'is_profile_updated'=>1
                 ]
             );
             DB::commit();
