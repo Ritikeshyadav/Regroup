@@ -8,6 +8,8 @@ use App\Services\APIs\ManageCommunitiesApiService;
 use App\Models\ManageCommunity;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SendOtp;
 
 
 
@@ -39,6 +41,20 @@ class ManageCommunitiesApiController extends Controller
         }catch(Exception $e)
         {
             Log::error('store user selected communities function failed: '. $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    public function sendMail()
+    {
+        try{
+            $email = 'ritikesh.yadav@wdimails.com';
+            $mailData['body'] = rand(1000,9999);
+            Mail::to($email)->send(new SendOtp($mailData));
+            return jsonResponseWithSuccessMessageApi(__('success.send_mail'), 200);
+        }catch(Exception $e)
+        {
+            Log::error('Error in sending mail: '. $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
