@@ -30,5 +30,6 @@ return [
     'data_deleted' => 'Data Deleted successfully.',
     'date_check' => 'Date must be greater than today date',
     'send_notificattions' => 'Notification Send Successfully!',
+    'send_mail' => 'Mail Send Successfully!',
 
 ];

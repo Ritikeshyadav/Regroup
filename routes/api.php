@@ -155,9 +155,12 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/select-groups',[ManageGroupsApiController::class,'storeSelectedGroup']);
 
 
-            //========================( Manage Groups API'S)=======================================//
+            //========================( Manage Communities API'S)=======================================//
             Route::get('/fetch-communities',[ManageCommunitiesApiController::class,'fetchManageCommunities']);
             Route::post('/select-communities',[ManageCommunitiesApiController::class,'storeSelectedCommunity']);
+
+            // ================================send mail============================//
+            Route::get('/send-mail',[ManageCommunitiesApiController::class,'sendMail']);
         });
     });
 });
