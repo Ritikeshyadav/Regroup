@@ -106,7 +106,7 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             //========================( Manage Communities API'S)=======================================//
             Route::get('/fetch-communities', [ManageCommunitiesApiController::class, 'fetchManageCommunities']);
             Route::post('/select-communities', [ManageCommunitiesApiController::class, 'storeSelectedCommunity']);
-            Route::get('/search-community', [ManageGroupsApiController::class, 'searchCommunity']);
+            Route::get('/search-community', [ManageCommunitiesApiController::class, 'searchCommunity']);
 
             
             // ================================send mail============================//
