@@ -74,7 +74,8 @@ class ManageActivitiesApiService
                 return jsonResponseWithErrorMessageApi($validator->errors(), 422);
             }
 
-            $space_folder_list_task_link_xid = SpaceFolderListTaskLink::where('id', $request->space_folder_list_task_link_xid)->first();
+            // $space_folder_list_task_link_xid = SpaceFolderListTaskLink::where('id', $request->space_folder_list_task_link_xid)->first();
+            $space_folder_list_task_link_xid = false;
             if (!$space_folder_list_task_link_xid) {
                 return jsonResponseWithErrorMessageApi(__('space_xid not found'), 422);
             }
