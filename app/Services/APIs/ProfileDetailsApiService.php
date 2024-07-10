@@ -4,6 +4,7 @@ namespace App\Services\APIs;
 
 use App\Models\IamPrincipal;
 use App\Models\IamRole;
+use App\Models\IamPrincipalFollowers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -110,6 +111,53 @@ class ProfileDetailsApiService
     }
 
     /**
+     * Created By : Ritikesh Yadav
+     * Created At : 08 April 2024
+     * Use : To update profile details service
+     */
+    public function updateBothProfileService($iamprincipal_id, $request)
+    {
+        try {
+            DB::beginTransaction();
+            $validator = Validator::make($request->all(), [
+                'email_address' => 'required|email|unique:iam_principal,email_address,'.$iamprincipal_id,
+                'profile_image' => 'mimes:jpeg,jpg,png,gif|max:2048',
+            ]);
+
+            $userData = IamPrincipal::select('id','profile_photo')->where('id',$iamprincipal_id)->first();
+
+            if ($validator->fails()) {
+                return jsonResponseWithErrorMessageApi($validator->errors(), 422);
+            }
+
+            if (isset($request->profile_image)) {
+                $image = $request->profile_image;
+                $image_db = null;
+            } else {
+                $image = null;
+                $image_db = $userData->profile_photo;
+            }
+            if($request->has('profile_image'))
+            {
+                $img = saveSingleImageWithoutCrop($request->file('profile_image'), 'profile_image', $image_db);
+                $request['profile_photo'] = $img;
+
+                // remove profile_image key from request array
+                $newArray = \Illuminate\Support\Arr::except($request->all(),['profile_image']);
+            }
+
+            $data = IamPrincipal::where('id',$iamprincipal_id)->update($newArray ?? $request->all());
+            DB::commit();
+            $responseData['profile'] = $data;
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'), $responseData, 201);
+        } catch (Exception $ex) {
+            DB::rollBack();
+            Log::error('update profile details service function failed: ' . $ex->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    /**
      * Created By : Chandan Yadav
      * Created At : 08 April 2024
      * Use : To delete profile service
@@ -142,6 +190,66 @@ class ProfileDetailsApiService
             DB::rollBack();
             Log::error('Delete profile data failed: ' . $ex->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    /* 
+        * Created By : Ritikesh Yadav
+        * Created At : 09 July 2024
+        * Use : To fetch profile service
+     */
+    public function fetchProfileService($iamprincipal_id)
+    {
+        try {
+            $data = IamPrincipal::with('interestsLink.interest')->where('id',$iamprincipal_id)->first();
+            $interestName = [];
+            if($data->interestsLink != null)
+            {
+                foreach($data->interestsLink as $interests)
+                {
+                    array_push($interestName,$interests->interest->name);
+                }
+                $data->interestName = $interestName;
+            }
+            $formatData = (array)[
+                'id' => $data->id,
+                'user_name' => $data->user_name,
+                // 'pin' => $data->pin,
+                'full_name' => $data->full_name,
+                'gender' => $data->gender,
+                'date_of_birth' => $data->date_of_birth,
+                'interest' => $interestName,
+                'about' => $data->about,
+                'position' => $data->position,
+                'training_scores' => $data->training_scores,
+                'height' => $data->height,
+                'weight' => $data->weight,
+                'batting_average' => $data->batting_average,
+                'follows' => $this->fetchFollowers($iamprincipal_id),
+            ];
+
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $formatData,200);
+        } catch (Exception $e) {
+            Log::error('Fecth profile service function failes: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    /* 
+        * Created By : Ritikesh Yadav
+        * Created At : 09 July 2024
+        * Use : To fetch profile service
+     */
+    public function fetchFollowers($iamprincipal_id)
+    {
+        try{
+            $data['following'] = IamPrincipalFollowers::where('iam_principal_xid',$iamprincipal_id)->count();
+            $data['followers'] = IamPrincipalFollowers::where('following_iam_principal_xid',$iamprincipal_id)->count();
+            return $data;
+        }catch(Exception $e)
+        {
+            Log::error('Fetch follower service function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
 }
