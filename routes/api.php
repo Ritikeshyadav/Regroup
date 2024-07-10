@@ -78,11 +78,6 @@ Route::middleware(['BasicAuthApi'])->group(function () {
 
 
 
-            // =====================( Product API'S )================================//
-            Route::post('/add-product', [ManageProductApiController::class, 'addProduct']);
-            Route::get('/fetch-product', [ManageProductApiController::class, 'fetchProduct']);
-            Route::post('/edit-product', [ManageProductApiController::class, 'editProduct']);
-            Route::post('/delete-product', [ManageProductApiController::class, 'deleteProduct']);
 
             //======================( Manage Activities API'S  )==============================//
             Route::post('/add-activities', [ManageActivitiesApiController::class, 'addManageActivities']);
@@ -95,9 +90,6 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/update-profile', [ProfileDetailsApiController::class, 'updateProfile']);
             Route::post('/delete-profile', [ProfileDetailsApiController::class, 'deleteProfile']);
 
-            //======================( Send Notifications API'S  )==============================//
-            Route::post('/send-notification', [NotificationApiController::class, 'sendNotification']);
-            Route::get('/listing-notification', [NotificationApiController::class, 'listingNotification']);
 
             //========================( Manage Interest API'S)=======================================//
             Route::get('/fetch-interests', [ManageInterestApiController::class, 'fetchManageInterests']);
@@ -106,12 +98,17 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             //========================( Manage Groups API'S)=======================================//
             Route::get('/fetch-groups', [ManageGroupsApiController::class, 'fetchManageGroup']);
             Route::post('/select-groups', [ManageGroupsApiController::class, 'storeSelectedGroup']);
+            Route::get('/search-group', [ManageGroupsApiController::class, 'seachGroup']);
+
+            
 
 
             //========================( Manage Communities API'S)=======================================//
             Route::get('/fetch-communities', [ManageCommunitiesApiController::class, 'fetchManageCommunities']);
             Route::post('/select-communities', [ManageCommunitiesApiController::class, 'storeSelectedCommunity']);
+            Route::get('/search-community', [ManageGroupsApiController::class, 'searchCommunity']);
 
+            
             // ================================send mail============================//
             Route::post('/send-mail',[ManageCommunitiesApiController::class,'sendMail']);
         });

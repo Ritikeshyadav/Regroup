@@ -74,4 +74,34 @@ class ManageCommunitiesApiService
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
+
+    
+    public function searchCommunityDataService($request)
+    {
+        try {
+            $data = [];
+            // dd($request->query('search_data'));
+            if ($request->get('search_data')) {
+                $query = $request->get('search_data');
+                if (strlen($query) >= 2) { // Ensure the query length is at least 2
+
+                    $data = ManageCommunity::select('id','community_profile_photo','community_banner_image','community_name','community_location','community_description','community_type_xid','activity_xid')->where('is_active', 1)
+                        ->where(function ($q) use ($query) {
+                            $q->where('community_name', 'LIKE', "%{$query}%");
+                        })
+                        ->get();
+                } else {
+                    $data = ManageCommunity::select('id','community_profile_photo','community_banner_image','community_name','community_location','community_description','community_type_xid','activity_xid')
+                        ->where('is_active', 1)
+                        ->get();
+                }
+            }
+
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $data, 200);
+        } catch (Exception $e) {
+            Log::error('Search group service function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+
+    }
 }
