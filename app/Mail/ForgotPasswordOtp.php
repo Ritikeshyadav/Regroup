@@ -28,7 +28,7 @@ class ForgotPasswordOtp extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Forgot Password Otp  WDI Reusable Module',
+            subject: 'Forgot Password Otp ReGroup',
         );
     }
 

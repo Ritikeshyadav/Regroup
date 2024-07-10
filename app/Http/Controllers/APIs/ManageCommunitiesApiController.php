@@ -58,5 +58,23 @@ class ManageCommunitiesApiController extends Controller
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
+
+     /**
+     * Created By : Hritik
+     * Created at : 10 July 2024
+     * Use : To Search Group by name Your Password
+     */
+    public function searchCommunity(Request $request)
+    {
+        try {
+            $token = readHeaderToken();
+            $searchText = $request->query('search_data');
+           
+            return $token ? $this->manageCommunitiesApiService->searchCommunityDataService($request) : jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+        } catch (Exception $e) {
+            Log::error('Search Group group function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
     
 }
