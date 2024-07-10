@@ -405,8 +405,41 @@ class AuthApiService
     }
 
 
+    /**
+     * Created By : Hritik
+     * Created At : 10 July 2024
+     * Use : To Update User account type .
+     */
+    public function updateUserAccountTypeService($request)
+    {
+        try {
+
+            DB::beginTransaction();
+            // Retrieve the user's OTP record
+            $principalTypeXid = $request->principal_type_xid;
+            $email = $request->email_address;
+            $iamPrincipalData = IamPrincipal::where('id', $request['iam_principal_xid'])->first();
+            // dd($request->all(),$iamPrincipalData);
+            if ($email != null) {
+                $iamPrincipalData->email_address = $email;
+                $iamPrincipalData->principal_type_xid = $principalTypeXid;
+                $iamPrincipalData->save();
+
+            }
+
+            $iamPrincipalData->principal_type_xid = $principalTypeXid;
+            $iamPrincipalData->save();
+
+            DB::commit();
 
 
+            return jsonResponseWithSuccessMessageApi(__('auth.otp_sent_successfully'), $iamPrincipalData, 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Resend Otp form service function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
 
 
 }

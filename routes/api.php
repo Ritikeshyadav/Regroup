@@ -48,6 +48,11 @@ Route::middleware(['BasicAuthApi'])->group(function () {
     Route::group(['middleware' => ['BasicAuthApi','wdi.jwt.verify',]], function () {
         Route::prefix('/v1')->group(function () {
 
+
+            //update User Account type when Register with apple of google
+            Route::post('/update-user-account-type', [AuthApiController::class, 'updateUserAccountType']);
+
+            
             //get AUth User 
             Route::get('/get-auth-user-data', [AuthApiController::class, 'getAuthUserDetails']);
 
