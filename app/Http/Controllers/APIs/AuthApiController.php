@@ -357,6 +357,43 @@ class AuthApiController extends Controller
         );
     }
 
+ /**
+     * Created By : Hritik
+     * Created at : 09 July 2024
+     * Use : To Reset Your Password
+     */
+
+    public function resetPassword(Request $request)
+    {
+
+        try {
+            $validator = $this->validateResetPasswordForm($request);
+            if ($validator->fails()) {
+                $validationErrors = $validator->errors()->all();
+                Log::error("Reset Password validation error: " . implode(", ", $validationErrors));
+                return jsonResponseWithErrorMessageApi($validationErrors, 403);
+            }
+            return $this->AuthApiService->resetPasswordService($request);
+        } catch (Exception $e) {
+            Log::error('Reset Password form controller function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+    public function validateResetPasswordForm(Request $request)
+    {
+        return Validator::make(
+            $request->all(),
+            [
+                'email_address' => 'required|email|max:50',
+                'password' => ['required', 'string', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/'],
+            ],
+            [
+                'password.regex' => 'The password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and minimum 8 and maximum 20 characters long.'
+            ]
+        );
+    }
+    
+
 
   
 

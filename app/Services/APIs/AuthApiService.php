@@ -192,8 +192,9 @@ class AuthApiService
             }
             $otp = generateRandomOTP();
             IamPrincipalOtp::updateOrCreate(
-                ['principal_xid' => $user->id],
+                ['email_id' => $request->email_address],
                 [
+                    'principal_xid' => $user->id,
                     'otp_code' => $otp,
                     'otp_purpose' => 'forgot password',
                     'valid_till' => Carbon::now()->addMinutes(2),
@@ -254,7 +255,8 @@ class AuthApiService
             $iamPrincipal->save();
 
             $response = [
-                'iam_principal_xid' => $user->id
+                'iam_principal_xid' => $user->id,
+                'email_address' => $user->email_address
             ];
             return jsonResponseWithSuccessMessageApi(__('auth.otp_verified'), $response, 201);
         } catch (Throwable $ex) {
@@ -262,6 +264,43 @@ class AuthApiService
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
+
+
+    /**
+     * Created By : Hritik
+     * Created At : 10 July 2024
+     * Use : To Reset Password.
+     */
+    public function resetPasswordService($request)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Retrieve the user's OTP record
+            $user = IamPrincipal::where('email_address', $request->email_address)->first();
+
+            // Check if OTP record exists for the user
+            if (!$user) {
+                return jsonResponseWithErrorMessageApi(__('auth.user_not_found'), 403);
+            }
+            $update = IamPrincipal::where('email_address', $request->email_address)->update([
+                'password_hash' => Hash::make($request->password),
+
+            ]);
+
+            DB::commit();
+
+
+            return jsonResponseWithSuccessMessageApi(__('auth.password_updated_successfully'));
+        } catch (Throwable $ex) {
+            DB::rollBack();
+            Log::error('Reset Password form service function failed: ' . $ex->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+
+
 
     /**
      * Created By : Chandan Yadav

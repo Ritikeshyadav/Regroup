@@ -39,6 +39,9 @@ Route::middleware(['BasicAuthApi'])->group(function () {
 
         Route::post('/forgot-password', [AuthApiController::class, 'forgotPassword']);
         Route::post('/forgot-password/verify-otp', [AuthApiController::class, 'verifyOtpForgotPassword']);
+        Route::post('/reset-password', [AuthApiController::class, 'resetPassword']);
+        
+        
         Route::post('/resend-otp', [AuthApiController::class, 'resendOtp']);
 
         Route::post('/sign-in-with-google-login', [GoogleLoginApiController::class, 'signInWithGoogle']);

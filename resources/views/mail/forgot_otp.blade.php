@@ -4,7 +4,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Wdi Forgot Password OTP</title>
+    <title>Forgot Password OTP</title>
 </head>
 
 <body>
@@ -44,7 +44,7 @@
                                             <tr style="display: flex;justify-content: center;">
                                                 <td style="padding-bottom: 20px;" align="center" valign="top">
                                                     <p style="color:#09005D;font-family:Arial,Poppins,Helvetica,sans-serif;font-size:14px;font-weight:400;font-style:normal;letter-spacing:normal;line-height:18.4px;text-transform:none;text-align:center;padding:0;margin:0">
-                                                        Use this code to Forgot Password
+                                                        Use this code to Reset Your Password Valid for 2 minutes.
                                                     </p>
                                                 </td>
                                             </tr>
@@ -62,7 +62,7 @@
                                                     <p style="color:#09005D;font-family:Arial,Poppins,Helvetica,sans-serif;font-size:14px;font-weight:400;font-style:normal;letter-spacing:normal;line-height:18.4px;text-transform:none;text-align:center;padding:0;margin:0">
                                                         Thank you!<br />
 
-                                                        WDI Team
+                                                       ReGroup
                                                     </p>
                                                 </td>
                                             </tr>
