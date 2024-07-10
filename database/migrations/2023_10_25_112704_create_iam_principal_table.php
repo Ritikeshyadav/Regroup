@@ -39,6 +39,12 @@ return new class extends Migration
             $table->string('profile_photo')->nullable();
             $table->string('referral_code')->nullable();
             $table->string('description')->nullable();
+            $table->string('about')->nullable();
+            $table->string('position')->nullable();
+            $table->string('training_scores')->nullable();
+            $table->string('height')->nullable();
+            $table->string('weight')->nullable();
+            $table->string('batting_average')->nullable();
             $table->enum('is_active', [1, 0])->default(1)->comment('1=Active, 0=InActive');
             $table->integer('created_by')->nullable();
             $table->integer('modified_by')->nullable();

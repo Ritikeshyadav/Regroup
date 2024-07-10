@@ -61,7 +61,19 @@ class IamPrincipal extends Authenticatable implements JWTSubject
         'profile_photo',
         'referral_code',
         'description',
+        'about',
+        'position',
+        'training_scores',
+        'height',
+        'weight',
+        'batting_average',
         'is_active',
         'is_profile_updated'
     ];
+
+    public function interestsLink()
+    {
+        return $this->hasMany(IamPrincipalManageInterestLink::class,'iam_principal_xid','id');
+        // return $this->hasMany(IamPrincipalManageInterestLink::class);
+    }
 }

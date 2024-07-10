@@ -61,6 +61,9 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             //Update Profile
             Route::post('/add_profile', [ProfileDetailsApiController::class, 'addProfile']);
 
+            // fetch profile
+            Route::get('/fetch-profile',[ProfileDetailsApiController::class, 'fetchProfile']);
+
             //Store Activities
 
             Route::post('/store_activities',[ManageActivitiesApiController::class,'storeActivities']);
@@ -160,7 +163,7 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/select-communities',[ManageCommunitiesApiController::class,'storeSelectedCommunity']);
 
             // ================================send mail============================//
-            Route::get('/send-mail',[ManageCommunitiesApiController::class,'sendMail']);
+            Route::post('/send-mail',[ManageCommunitiesApiController::class,'sendMail']);
         });
     });
 });

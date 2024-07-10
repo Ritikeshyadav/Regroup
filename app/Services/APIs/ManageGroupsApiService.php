@@ -47,15 +47,20 @@ class ManageGroupsApiService
         try{
             DB::beginTransaction();
             $validator = Validator::make($request,[
-                'manage_group_xid' => 'required|exists:manage_groups,id',
+                'manage_group_xid.*' => 'required|exists:manage_groups,id',
             ]);
 
             if($validator->fails())
             {
                 return jsonResponseWithErrorMessageApi($validator->errors(), 422);   
             }
-
-            $storeUserSelectedGroups = IamPrincipalManageGroupLink::create(['iam_principal_xid'=>(int)$iamprincipal_id,'manage_group_xid'=>$request['manage_group_xid']]);
+            foreach(json_decode($request['manage_group_xid']) as $group)
+            {
+                if(IamPrincipalManageGroupLink::where(['iam_principal_xid'=>(int)$iamprincipal_id,'manage_group_xid'=>$group])->doesntExist())
+                {
+                    $storeUserSelectedGroups = IamPrincipalManageGroupLink::create(['iam_principal_xid'=>(int)$iamprincipal_id,'manage_group_xid'=>$group]);
+                }
+            }
             DB::commit();
             return jsonResponseWithSuccessMessageApi(__('success.save_data'), $storeUserSelectedGroups, 201);
         }catch(Exception $e)

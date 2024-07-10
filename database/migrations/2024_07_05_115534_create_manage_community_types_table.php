@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('manage_community_types', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('image');
-            $table->longText('description');
+            $table->string('name')->nullable();
+            $table->string('image')->nullable();
+            $table->longText('description')->nullable();
             $table->boolean('is_active')->default(1)->comment('1=Active, 0=InActive');
             $table->integer('created_by')->nullable();
             $table->integer('modified_by')->nullable();
