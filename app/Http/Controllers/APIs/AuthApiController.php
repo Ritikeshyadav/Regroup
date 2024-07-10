@@ -282,7 +282,7 @@ class AuthApiController extends Controller
 
 
 
-   /**
+    /**
      * Created By : Hritik
      * Created at : 09 July 2024
      * Use : To get auth User data
@@ -292,8 +292,8 @@ class AuthApiController extends Controller
         try {
             $token = readHeaderToken();
             if ($token) {
-                
-               
+
+
                 $iamprincipal_id = $token['sub'];
 
                 $request['iam_principal_xid'] = $iamprincipal_id;
@@ -301,7 +301,7 @@ class AuthApiController extends Controller
 
                 $response = $this->AuthApiService->getAuthUserDataService($request);
                 return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $response, 200);
-          
+
             } else {
                 return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
             }
@@ -311,10 +311,95 @@ class AuthApiController extends Controller
         }
     }
 
+
+    /**
+     * Created By : Hritik
+     * Created at : 10 July 2024
+     * Use : To Update User Account type
+     */
+
+    public function updateUserAccountType(Request $request)
+    {
+        try {
+            $token = readHeaderToken();
+            if ($token) {
+
+                $validator = $this->validateUpdateUserAccountTypeForm($request);
+                if ($validator->fails()) {
+                    $validationErrors = $validator->errors()->all();
+                    Log::error("Update User Account Form when login with Google/Apple form validation error: " . implode(", ", $validationErrors));
+                    return jsonResponseWithErrorMessageApi($validationErrors, 403);
+                }
+                $user_id = $token['sub'];
+                $request['iam_principal_xid'] = $user_id;
+
+                return $this->AuthApiService->updateUserAccountTypeService($request);
+
+            } else {
+                return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+            }
+        } catch (Exception $ex) {
+            Log::error('Update User Account Form  function failed: ' . $ex->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+
+    public function validateUpdateUserAccountTypeForm(Request $request)
+    {
+        return Validator::make(
+            $request->all(),
+            [
+                'principal_type_xid' => 'required|integer|exists:iam_principal_type,id' //1=Individual, //2= Business
+
+
+            ],
+        );
+    }
+
+ /**
+     * Created By : Hritik
+     * Created at : 09 July 2024
+     * Use : To Reset Your Password
+     */
+
+    public function resetPassword(Request $request)
+    {
+
+        try {
+            $validator = $this->validateResetPasswordForm($request);
+            if ($validator->fails()) {
+                $validationErrors = $validator->errors()->all();
+                Log::error("Reset Password validation error: " . implode(", ", $validationErrors));
+                return jsonResponseWithErrorMessageApi($validationErrors, 403);
+            }
+            return $this->AuthApiService->resetPasswordService($request);
+        } catch (Exception $e) {
+            Log::error('Reset Password form controller function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+    public function validateResetPasswordForm(Request $request)
+    {
+        return Validator::make(
+            $request->all(),
+            [
+                'email_address' => 'required|email|max:50',
+                'password' => ['required', 'string', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/'],
+            ],
+            [
+                'password.regex' => 'The password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and minimum 8 and maximum 20 characters long.'
+            ]
+        );
+    }
     
 
 
   
+
+
+
+
 }
 
 

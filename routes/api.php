@@ -39,6 +39,9 @@ Route::middleware(['BasicAuthApi'])->group(function () {
 
         Route::post('/forgot-password', [AuthApiController::class, 'forgotPassword']);
         Route::post('/forgot-password/verify-otp', [AuthApiController::class, 'verifyOtpForgotPassword']);
+        Route::post('/reset-password', [AuthApiController::class, 'resetPassword']);
+        
+        
         Route::post('/resend-otp', [AuthApiController::class, 'resendOtp']);
 
         Route::post('/sign-in-with-google-login', [GoogleLoginApiController::class, 'signInWithGoogle']);
@@ -48,6 +51,11 @@ Route::middleware(['BasicAuthApi'])->group(function () {
     Route::group(['middleware' => ['BasicAuthApi','wdi.jwt.verify',]], function () {
         Route::prefix('/v1')->group(function () {
 
+
+            //update User Account type when Register with apple of google
+            Route::post('/update-user-account-type', [AuthApiController::class, 'updateUserAccountType']);
+
+            
             //get AUth User 
             Route::get('/get-auth-user-data', [AuthApiController::class, 'getAuthUserDetails']);
 
@@ -78,11 +86,6 @@ Route::middleware(['BasicAuthApi'])->group(function () {
 
 
 
-            // =====================( Product API'S )================================//
-            Route::post('/add-product', [ManageProductApiController::class, 'addProduct']);
-            Route::get('/fetch-product', [ManageProductApiController::class, 'fetchProduct']);
-            Route::post('/edit-product', [ManageProductApiController::class, 'editProduct']);
-            Route::post('/delete-product', [ManageProductApiController::class, 'deleteProduct']);
 
             //======================( Manage Activities API'S  )==============================//
             Route::post('/add-activities', [ManageActivitiesApiController::class, 'addManageActivities']);
@@ -95,9 +98,6 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/update-profile', [ProfileDetailsApiController::class, 'updateProfile']);
             Route::post('/delete-profile', [ProfileDetailsApiController::class, 'deleteProfile']);
 
-            //======================( Send Notifications API'S  )==============================//
-            Route::post('/send-notification', [NotificationApiController::class, 'sendNotification']);
-            Route::get('/listing-notification', [NotificationApiController::class, 'listingNotification']);
 
             //========================( Manage Interest API'S)=======================================//
             Route::get('/fetch-interests', [ManageInterestApiController::class, 'fetchManageInterests']);
@@ -106,12 +106,17 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             //========================( Manage Groups API'S)=======================================//
             Route::get('/fetch-groups', [ManageGroupsApiController::class, 'fetchManageGroup']);
             Route::post('/select-groups', [ManageGroupsApiController::class, 'storeSelectedGroup']);
+            Route::get('/search-group', [ManageGroupsApiController::class, 'seachGroup']);
+
+            
 
 
             //========================( Manage Communities API'S)=======================================//
             Route::get('/fetch-communities', [ManageCommunitiesApiController::class, 'fetchManageCommunities']);
             Route::post('/select-communities', [ManageCommunitiesApiController::class, 'storeSelectedCommunity']);
+            Route::get('/search-community', [ManageCommunitiesApiController::class, 'searchCommunity']);
 
+            
             // ================================send mail============================//
             Route::post('/send-mail',[ManageCommunitiesApiController::class,'sendMail']);
         });
