@@ -5,7 +5,11 @@ namespace App\Services\APIs;
 use App\Mail\ForgotPasswordOtp;
 use App\Mail\SendOtp;
 use App\Models\IamPrincipal;
+use App\Models\IamPrincipalGroupLink;
+use App\Models\IamPrincipalManageCommunityLink;
+use App\Models\IamPrincipalManageGroupLink;
 use App\Models\IamPrincipalOtp;
+use App\Models\ManageCommunity;
 use Carbon\Carbon;
 use Exception;
 use GuzzleHttp\Promise\Create;
@@ -24,7 +28,8 @@ class AuthApiService
      * Created at : 01 July 2024
      * Use : To send otp
      */
-    public function sendOtpService($request){
+    public function sendOtpService($request)
+    {
         try {
             DB::beginTransaction();
             // Check if the user already exists
@@ -49,7 +54,7 @@ class AuthApiService
             $mailData['body'] = $otp;
             Mail::to($email)->send(new SendOtp($mailData));
             DB::commit();
-            return jsonResponseWithSuccessMessageApi(__('success.otp_sent_successfully'),200);
+            return jsonResponseWithSuccessMessageApi(__('success.otp_sent_successfully'), 200);
         } catch (Throwable $ex) {
             DB::rollBack();
             Log::error('Registration form service function failed: ' . $ex->getMessage());
@@ -63,7 +68,8 @@ class AuthApiService
      * Use : check otp and register
      */
 
-    public function verifyOtpService($request){
+    public function verifyOtpService($request)
+    {
         try {
             DB::beginTransaction();
             $iamPrincipal = IamPrincipalOTP::where('email_id', $request->email_address)->first();
@@ -97,7 +103,7 @@ class AuthApiService
                 'password_hash' => Hash::make($request->password),
                 'principal_type_xid' => $request->account_type,
                 'principal_source_xid' => '2',
-                'is_profile_updated' => '0'
+                'is_profile_updated' => 0
             ]);
             $token = generateToken($user);
             DB::commit();
@@ -178,7 +184,7 @@ class AuthApiService
      */
     public function forgotPasswordFormService($request)
     {
-        try { 
+        try {
             $email = $request->email_address;
             $user = IamPrincipal::where('email_address', $email)->first();
             if (!$user) {
@@ -305,4 +311,102 @@ class AuthApiService
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
+
+
+    /**
+     * Created By : Hritik D
+     * Created At : 09 July 2024
+     * Use : To get User Data 
+     */
+
+    public function getAuthUserDataService($request)
+    {
+        try {
+
+            $data = IamPrincipal::select(
+                'id',
+                'google_id',
+                'apple_id',
+                'user_name',
+                'full_name',
+                'gender',
+                'date_of_birth',
+                'phone_number',
+                'email_address',
+                'address_line1',
+                'address_line2',
+                'post_code',
+                'last_login_datetime',
+                'profile_photo',
+                'is_profile_updated',
+                'is_active',
+                'created_at',
+
+
+
+            )->find($request['iam_principal_xid']);
+            $userCommunityLink = IamPrincipalManageCommunityLink::with([
+                'communityData' => function ($query) {
+                    $query->select(
+                        'id',
+                        'community_profile_photo',
+                        'community_banner_image',
+                        'community_name',
+                        'community_location',
+                        'community_description',
+                        'community_type_xid',
+                        'activity_xid',
+                        'is_active',
+                        'created_at'
+                    );
+                }
+            ])->
+                select('id', 'iam_principal_xid', 'manage_community_xid', 'joined_at', 'is_active')->where('iam_principal_xid', $request['iam_principal_xid'])->get();
+
+            $userGroupsLink = IamPrincipalManageGroupLink::with
+
+            ([
+                    'groupData' => function ($query) {
+                        $query->select(
+                            'id',
+                            'manage_group_type_xid',
+                            'title',
+                            'background_image',
+                            'group_image',
+                            'link',
+                            'description',
+                            'is_active',
+
+                            'created_at'
+                        );
+                    }
+
+                ])->select('id', 'iam_principal_xid', 'manage_group_xid', 'created_at')
+                ->where('iam_principal_xid', $request['iam_principal_xid'])->get();
+
+
+            // if( $data->principal_type_xid == 2){
+
+            // }
+
+            $result = [
+                'userData' => $data,
+                'userCommunity' => $userCommunityLink,
+                'userGroups' => $userGroupsLink
+            ];
+
+
+
+            return $result;
+        } catch (Exception $ex) {
+            Log::error('User Get data service failed : ' . $ex->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+
+
+
+
+
 }

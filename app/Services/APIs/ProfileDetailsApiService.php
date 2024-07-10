@@ -29,13 +29,13 @@ class ProfileDetailsApiService
 
             $profileData = IamPrincipal::updateOrCreate(
                 ['id' => $iamprincipal_id],
-                [
-                    'full_name' => $request->full_name,
-                    'username' => $request->username,
-                    'date_of_birth' => $request->date_of_birth,
-                    'gender' => $request->gender,
-                    'address_line1' => $request->location,
-                    'profile_photo' => $profilePath,
+                ['full_name' => $request->full_name,
+                 'username' => $request->username,
+                 'date_of_birth' => $request->date_of_birth,
+                 'gender' => $request->gender,
+                 'address_line1' => $request->location,
+                 'profile_photo' => $profilePath,
+                 'is_profile_updated'=>1
                 ]
             );
             DB::commit();
