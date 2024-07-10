@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\APIs;
 
 use App\Http\Controllers\Controller;
+use App\Models\IamPrincipal;
+use App\Models\IamRole;
 use App\Services\APIs\BusinessProfileDetailsApiService;
 use Exception;
 use Illuminate\Http\Request;
@@ -10,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 
 class BusinessUserProfileController extends Controller
 {
@@ -84,9 +87,129 @@ class BusinessUserProfileController extends Controller
         }
     }
 
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 10 July 2024
+     * Use : TO fetch bussiness profile
+     */
+    public function fetchBusinessProfile()
+    {
+        try{
+            $token = readHeaderToken();
+            return $token ? $this->BusinessProfileDetailsApiService->fetchBusinessProfileService($token['sub']) : jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch bussiness profile function failed: '. $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
 
-    
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 10 July 2024
+     * Use : TO update bussiness profile
+     */
+    public function updateBusinessProfileFunction(Request $request)
+    {
+        try{
+            $token = readHeaderToken();
+            if($token)
+            {
+                $validator = validator::make($request->all(),[
+                    'business_name' => 'required',
+                    'business_username' => 'required',
+                    'business_owner_name' => 'required',
+                    'founded_on' => 'required',
+                    'website_link' => 'required',
+                    'business_location' => 'required',
+                    'bio' => 'required',
+                    'business_profile' => 'mimes:jpeg,jpg,png,gif|max:2048',
+                ]);
 
+                if($validator->fails())
+                {
+                    $validationErrors = $validator->errors()->all();
+                    Log::error("Update Business Profile validation error: " . implode(", ", $validationErrors));
+                    return jsonResponseWithErrorMessageApi($validationErrors, 403);   
+                }
+                return $this->BusinessProfileDetailsApiService->updateBusinessProfile($token['sub'],$request);
+            }
+            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'),409);
+        }catch(Exception $e)
+        {
+            Log::error('Update business profile function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 10 July 2024
+     * Use : TO send mail otp for update password
+     */
+    public function updatePasswordSendMailOtp(Request $request)
+    {
+        try{
+            $token = readHeaderToken();
+            if($token)
+            {
+                $validator = validator::make($request->all(),[
+                    'current_password' => 'required',
+                    'new_password' => 'required|required_with:confirm_password|same:confirm_password|different:current_password',
+                ]);
+                if($validator->fails())
+                {
+                    $validationErrors = $validator->errors()->all();
+                    Log::error("Update Business Profile validation error: " . implode(", ", $validationErrors));
+                    return jsonResponseWithErrorMessageApi($validationErrors, 403);
+                }
+
+                // getting user password for checking purpose
+                $userData = IamPrincipal::where('id',$token['sub'])->first();
+
+                // checking new password and old password
+                if(!Hash::check($request->current_password, $userData->password_hash))
+                {
+                    Log::error("Update Business Profile validation error: password not matched");
+                    return jsonResponseWithErrorMessageApi('password not matched', 403);
+                }
+
+                return $this->BusinessProfileDetailsApiService->sendMailOtpForUpdatePasswordService($userData->email_address,$token['sub']);
+            }
+            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'),409);
+
+        }catch(Exception $e)
+        {
+            Log::error('Send mail otp for update password function failed: '.$e->getMessage());
+            return jsonResponseWithSuccessMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    public function verifyUpdatePasswordOtp(Request $request)
+    {
+        try{
+            $token = readHeaderToken();
+            if($token)
+            {
+                $validator = Validator::make($request->all,[
+                    'otp' => 'required',
+                    'new_password' => 'required',
+                ]);
+                if($validator->fails())
+                { 
+                    $validationErrors = $validator->errors()->all();
+                    Log::error("Update Business Profile validation error: " . implode(", ", $validationErrors));
+                    return jsonResponseWithErrorMessageApi($validationErrors, 403);                   
+                }
+                return $this->BusinessProfileDetailsApiService->verifyOtpForUpdatePasswordService($token['sub'],$request->all());
+            }
+            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'),409);
+        }catch(Exception $e)
+        {
+            Log::error('Verify otp for update password function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
 
     public function validateTellUsAboutFormOfBusinessUser(Request $request)
     {

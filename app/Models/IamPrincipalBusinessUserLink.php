@@ -18,4 +18,8 @@ class IamPrincipalBusinessUserLink extends Model
     protected $guarded =
     [ ];
 
+    public function businessType()
+    {
+        return $this->belongsTo(BusinessTypes::class,'business_type_xid');
+    }
 }

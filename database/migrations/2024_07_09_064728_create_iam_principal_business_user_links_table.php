@@ -28,7 +28,11 @@ return new class extends Migration
 
             $table->string('business_owner_name')->nullable();
             $table->string('business_name')->nullable();
+            $table->string('business_username')->nullable();
+            $table->date('founded_on')->nullable();
+            $table->string('bio')->nullable();
             $table->string('business_location')->nullable();
+            $table->string('business_profile_image')->nullable();
             $table->string('business_contact_number')->nullable();
             $table->string('business_email')->nullable();
             $table->string('business_handle')->nullable();

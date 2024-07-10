@@ -62,9 +62,17 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/tell-us-about-your-business', [BusinessUserProfileController::class, 'tellUsAboutYourBusiness']);
             Route::post('/update-business-profile-step-1', [BusinessUserProfileController::class, 'updateBusinessProfile']);
 
-            //Store Activities
+            // fetch or update bussiness profile
+            Route::get('/fetch-business-profile',[BusinessUserProfileController::class, 'fetchBusinessProfile']);
+            Route::post('/update-business-profile',[BusinessUserProfileController::class, 'updateBusinessProfileFunction']);
 
+            // update password
+            Route::post('/update-password-send-otp',[BusinessUserProfileController::class, 'updatePasswordSendMailOtp']);
+            Route::post('/verify-update-password-otp',[BusinessUserProfileController::class, 'verifyUpdatePasswordOtp']);
+
+            //Store Activities
             Route::post('/store_activities', [ManageActivitiesApiController::class, 'storeActivities']);
+
             // ===================( Logout API'S )=========================//
             Route::get('/user-logout', [LogoutApiController::class, 'userLogout']);
 
