@@ -47,19 +47,25 @@ class ManageCommunitiesApiService
         try{
             DB::beginTransaction();
             $validator = Validator::make($request,[
-                'manage_community_xid' => 'required|exists:manage_communities,id',
+                'manage_community_xid.*' => 'required|exists:manage_communities,id',
             ]);
 
             if($validator->fails())
             {
                 return jsonResponseWithErrorMessageApi($validator->errors(), 422);   
             }
-            $storeUserSelectedCommunity = IamPrincipalManageCommunityLink::create([
-                'iam_principal_xid'=>(int)$iamprincipal_id,
-                'manage_community_xid'=>$request['manage_community_xid'],
-                'joined_at' => Carbon::now(),
-            ]);
-            DB::commit();
+            foreach(json_decode($request['manage_community_xid']) as $community)
+            {
+                if(IamPrincipalManageCommunityLink::where(['iam_principal_xid'=>(int)$iamprincipal_id,'manage_community_xid'=>$community])->doesntExist())
+                {
+                    $storeUserSelectedCommunity = IamPrincipalManageCommunityLink::create([
+                        'iam_principal_xid'=>(int)$iamprincipal_id,
+                        'manage_community_xid'=>$community,
+                        'joined_at' => Carbon::now(),
+                    ]);
+                }
+            }
+                DB::commit();
             return jsonResponseWithSuccessMessageApi(__('success.save_data'), $storeUserSelectedCommunity, 201);
         }catch(Exception $e)
         {

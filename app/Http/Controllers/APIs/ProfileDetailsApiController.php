@@ -80,7 +80,8 @@ class ProfileDetailsApiController extends Controller
             $token = readHeaderToken();
             if ($token) {
                 $iamprincipal_id = $token['sub'];
-                return $this->ProfileDetailsApiService->updateProfileService($iamprincipal_id, $request);
+                // return $this->ProfileDetailsApiService->updateProfileService($iamprincipal_id, $request);
+                return $this->ProfileDetailsApiService->updateBothProfileService($iamprincipal_id, $request);
             } else {
                 return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
             }
@@ -130,6 +131,27 @@ class ProfileDetailsApiController extends Controller
                 
             ],
         );
+    }
+
+    /*
+     * Created By : Ritikesg Yadav
+     * Created At : 09 July 2024
+     * Use : To fetch user profile
+    */
+    public function fetchProfile()
+    {
+        try{
+            $token = readHeaderToken();
+            if($token)
+            {
+                return $this->ProfileDetailsApiService->fetchProfileService($token['sub']);
+            }
+            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch profile function failed: '. $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
     }
 
 }

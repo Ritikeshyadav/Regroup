@@ -37,4 +37,10 @@ class IamPrincipal extends Authenticatable implements JWTSubject
     protected $guarded =
     [
     ];
+
+    public function interestsLink()
+    {
+        return $this->hasMany(IamPrincipalManageInterestLink::class,'iam_principal_xid','id');
+        // return $this->hasMany(IamPrincipalManageInterestLink::class);
+    }
 }

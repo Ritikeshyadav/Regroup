@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('manage_group_types', function (Blueprint $table) {
+        Schema::create('iam_principal_followers', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
-            $table->string('image')->nullable();
-            $table->longText('description')->nullable();
-            $table->boolean('is_active')->default(1)->comment('1=Active, 0=InActive');
+            $table->unsignedBigInteger('iam_principal_xid');
+            $table->unsignedBigInteger('following_iam_principal_xid');
+            $table->foreign('iam_principal_xid')->references('id')->on('iam_principal')->onDelete('cascade');
+            $table->foreign('following_iam_principal_xid')->references('id')->on('iam_principal')->onDelete('cascade');
             $table->integer('created_by')->nullable();
             $table->integer('modified_by')->nullable();
             $table->softDeletes();
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('manage_group_types');
+        Schema::dropIfExists('iam_principal_followers');
     }
 };

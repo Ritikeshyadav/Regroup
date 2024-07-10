@@ -13,4 +13,14 @@ class IamPrincipalManageInterestLink extends Model
     protected $table = 'iam_principal_manage_interest_links';
 
     protected $fillable = ['iam_principal_xid', 'manage_interest_xid'];
+
+    public function interest()
+    {
+        return $this->belongsTo(ManageInterest::class,'manage_interest_xid','id');
+    }
+
+    // public function iamPrincipal()
+    // {
+    //     return $this->belongsTo(IamPrincipal::class,'iam_principal_xid');
+    // }
 }
