@@ -67,10 +67,10 @@ class ManageInterestApiService
                     $otherInterestId = ManageInterest::insertGetId(['name'=>$request['other_interest']]);
                     array_push($interestArray,$otherInterestId);
                 }else{
-                    return jsonResponseWithErrorMessageApi('Other interest already exist',500);
+                    return jsonResponseWithErrorMessageApi('This Activity Already Exist',403);
                 }
             }
-            
+
             foreach($interestArray as $interest)
             {
                 if(IamPrincipalManageInterestLink::where(['iam_principal_xid'=>(int)$iamprincipal_id,'manage_interest_xid'=>$interest])->doesntExist())

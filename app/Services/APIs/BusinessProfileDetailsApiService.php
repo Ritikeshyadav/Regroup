@@ -213,17 +213,11 @@ class BusinessProfileDetailsApiService
      * Created At : 10 July 2024
      * Use : To send otp on mail for update password service 
      */
-    public function verifyOtpForUpdatePasswordService($iamprincipal_id,$request)
+    public function verifyOtpForUpdatePasswordService($iamprincipal_id,$request,$storedOtp)
     {
         try{
             DB::beginTransaction();
-            $storedOtp = IamPrincipalOtp::where("iam_principal_xid",$iamprincipal_id)->first();
-            if($storedOtp->valid_till > carbon::now() || $storedOtp->otp_code != $request->otp)
-            {
-                $validationErrors = $storedOtp > carbon::now() ? 'OTP has been expired!' : 'OTP not matched!';
-                Log::error("Update Business Profile validation error: " . $validationErrors);
-                return jsonResponseWithErrorMessageApi($validationErrors, 403);
-            }
+            
             if($storedOtp->otp_code == $request->otp)
             {
                 IamPrincipal::where('id',$iamprincipal_id)->update(['password_hash'=>Hash::make($request->new_password)]);
