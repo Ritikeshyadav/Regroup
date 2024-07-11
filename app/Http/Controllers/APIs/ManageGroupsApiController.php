@@ -18,11 +18,11 @@ class ManageGroupsApiController extends Controller
         $this->manageGroupsApiService = $manageGroupsApiService;
     }
 
-    public function fetchManageGroup()
+    public function fetchManageGroup(Request $request)
     {
         try {
             $token = readHeaderToken();
-            return $token ? $this->manageGroupsApiService->fetchGroupService() : jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+            return $token ? $this->manageGroupsApiService->fetchGroupService($request) : jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
         } catch (Exception $e) {
             Log::error('fetch manage group function failed: ' . $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
