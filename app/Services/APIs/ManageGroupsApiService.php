@@ -17,12 +17,30 @@ class ManageGroupsApiService
      * Created At : 05 July 2024
      * Use : fetch all group data 
      */
-    public function fetchGroupService()
+    public function fetchGroupService($request)
     {
         try {
-            $data = ManageGroup::select('id', 'title', 'background_image', 'group_image', 'location', 'link', 'description')
+
+            if ($request->get('search_data')) {
+                $query = $request->get('search_data');
+                if (strlen($query) >= 2) { // Ensure the query length is at least 2
+
+                    $data = ManageGroup::select('id', 'title', 'background_image', 'group_image', 'location', 'link', 'description')->where('is_active', 1)
+                        ->where(function ($q) use ($query) {
+                            $q->where('title', 'LIKE', "%{$query}%");
+                        })
+                        ->get();
+                } else {
+                    $data = ManageGroup::select('id', 'title', 'background_image', 'group_image', 'location', 'link', 'description')
+                    ->where('is_active', 1)
+                    ->get();
+                }
+            }else{
+                $data = ManageGroup::select('id', 'title', 'background_image', 'group_image', 'location', 'link', 'description')
                 ->where('is_active', 1)
                 ->get();
+            }
+            
 
             if ($data == null) {
                 log::info('manage group data not found');
