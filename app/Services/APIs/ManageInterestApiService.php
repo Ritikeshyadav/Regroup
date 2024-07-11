@@ -53,20 +53,24 @@ class ManageInterestApiService
                 'manage_interest_xid.*' => 'required|exists:manage_interests,id',
                 'other_interest' => 'nullable',
             ]);
-
             if($validator->fails())
             {
                 return jsonResponseWithErrorMessageApi($validator->errors(), 422);   
             }
 
             $interestArray = json_decode($request['manage_interest_xid']);
-
+            
             if($request['other_interest'])
             {
-                $otherInterestId = ManageInterest::insertGetId(['name'=>$request['other_interest']]);
-                array_push($interestArray,$otherInterestId);
+                if(ManageInterest::where('name','like',$request['other_interest'])->doesntExist())
+                {
+                    $otherInterestId = ManageInterest::insertGetId(['name'=>$request['other_interest']]);
+                    array_push($interestArray,$otherInterestId);
+                }else{
+                    return jsonResponseWithErrorMessageApi('Other interest already exist',500);
+                }
             }
-
+            
             foreach($interestArray as $interest)
             {
                 if(IamPrincipalManageInterestLink::where(['iam_principal_xid'=>(int)$iamprincipal_id,'manage_interest_xid'=>$interest])->doesntExist())
@@ -76,7 +80,7 @@ class ManageInterestApiService
             }
 
             DB::commit();
-            
+
             return jsonResponseWithSuccessMessageApi(__('success.save_data'), $storeUserSelectedInterest, 201);
         }catch(Exception $e)
         {
