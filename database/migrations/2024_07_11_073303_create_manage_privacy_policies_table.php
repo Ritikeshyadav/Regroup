@@ -9,19 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-     /**
-     * Created By : Hritik
-     * Created At : 09 July 2024
-     * Use : To create table for Business Types
-     */
     public function up(): void
     {
-        Schema::create('business_types', function (Blueprint $table) {
+        Schema::create('manage_privacy_policies', function (Blueprint $table) {
             $table->id();
-
-            $table->string('name')->nullable();
-            $table->string('image')->nullable();
-            $table->longText('description')->nullable();
+            $table->unsignedBigInteger('iam_principal_type_xid');
+            $table->foreign('iam_principal_type_xid')->references('id')->on('iam_principal_type')->onDelete('cascade');
+            $table->longText('content')->nullable();
             $table->boolean('is_active')->default(1)->comment('1=Active, 0=InActive');
             $table->integer('created_by')->nullable();
             $table->integer('modified_by')->nullable();
@@ -35,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('business_types');
+        Schema::dropIfExists('manage_privacy_policies');
     }
 };
