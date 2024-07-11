@@ -5,7 +5,9 @@ namespace App\Http\Controllers\APIs;
 use App\Http\Controllers\Controller;
 use App\Models\IamPrincipal;
 use App\Models\IamRole;
+use App\Models\IamPrincipalOtp;
 use App\Services\APIs\BusinessProfileDetailsApiService;
+use App\Services\APIs\AuthApiService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class BusinessUserProfileController extends Controller
 {
@@ -191,7 +194,7 @@ class BusinessUserProfileController extends Controller
             $token = readHeaderToken();
             if($token)
             {
-                $validator = Validator::make($request->all,[
+                $validator = Validator::make($request->all(),[
                     'otp' => 'required',
                     'new_password' => 'required',
                 ]);
@@ -201,7 +204,14 @@ class BusinessUserProfileController extends Controller
                     Log::error("Update Business Profile validation error: " . implode(", ", $validationErrors));
                     return jsonResponseWithErrorMessageApi($validationErrors, 403);                   
                 }
-                return $this->BusinessProfileDetailsApiService->verifyOtpForUpdatePasswordService($token['sub'],$request->all());
+                $storedOtp = IamPrincipalOtp::where("principal_xid",$token['sub'])->first();
+                if(!$storedOtp || carbon::now() > $storedOtp->valid_till  || $storedOtp->otp_code != $request->otp || $storedOtp->is_used == 1)
+                {
+                    $validationErrors = !$storedOtp ? 'OTP not found!' : ( carbon::now() > $storedOtp->valid_till ? 'OTP has been expired!' : ($storedOtp->otp_code != $request->otp ? 'OTP not matched!' :'OTP is already used!' ));
+                    Log::error("Update Business Profile validation error: " . $validationErrors);
+                    return jsonResponseWithErrorMessageApi($validationErrors, 403);
+                }
+                return $this->BusinessProfileDetailsApiService->verifyOtpForUpdatePasswordService($token['sub'],$request,$storedOtp);
             }
             return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'),409);
         }catch(Exception $e)
