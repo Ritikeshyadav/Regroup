@@ -22,11 +22,11 @@ class ManageCommunitiesApiController extends Controller
         $this->manageCommunitiesApiService = $manageCommunitiesApiService;
     }
 
-    public function fetchManageCommunities()
+    public function fetchManageCommunities(Request $request)
     {
         try{
             $token = readHeaderToken();
-            return $token ? $this->manageCommunitiesApiService->fetchManageCommunities() : jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'),409);
+            return $token ? $this->manageCommunitiesApiService->fetchManageCommunities($request) : jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'),409);
         }catch(Exception $e){
             Log::error('fetch manage communities function failed: '. $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
