@@ -220,6 +220,7 @@ class BusinessProfileDetailsApiService
             
             if($storedOtp->otp_code == $request->otp)
             {
+                IamPrincipalOtp::where('principal_xid',$iamprincipal_id)->update(['is_used'=>1]);
                 IamPrincipal::where('id',$iamprincipal_id)->update(['password_hash'=>Hash::make($request->new_password)]);
                 DB::commit();
                 return jsonResponseWithSuccessMessageApi(__('success.update_data'),200);
