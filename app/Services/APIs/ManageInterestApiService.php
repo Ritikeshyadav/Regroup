@@ -76,16 +76,18 @@ class ManageInterestApiService
                 if(IamPrincipalManageInterestLink::where(['iam_principal_xid'=>(int)$iamprincipal_id,'manage_interest_xid'=>$interest])->doesntExist())
                 {
                     $storeUserSelectedInterest = IamPrincipalManageInterestLink::create(['iam_principal_xid'=>(int)$iamprincipal_id,'manage_interest_xid'=>$interest]);
+                }else{
+                    continue;
                 }
             }
 
             DB::commit();
 
-            return jsonResponseWithSuccessMessageApi(__('success.save_data'), $storeUserSelectedInterest, 201);
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'), [], 201);
         }catch(Exception $e)
         {
             DB::rollBack();
-            Log::error('store user selected interest function failed: '. $e->getMessage());
+            Log::error('store user selected interest function failed: '. $e->getMessage() . $e->getLine());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
