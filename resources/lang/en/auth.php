@@ -69,4 +69,5 @@ return [
     'send_otp' => 'You can resend OTP only after a 2-minute interval.',
     'logout' => 'Logout Successfully',
     'unauthorized_action' => 'Unauthorised Users',
+    'account_updated_sucessfully'=>'User Account Updated Sucessfully'
 ];

@@ -47,6 +47,9 @@ Route::middleware(['BasicAuthApi'])->group(function () {
 
         Route::post('/sign-in-with-google-login', [GoogleLoginApiController::class, 'signInWithGoogle']);
         Route::post('/apple-login', [AppleLoginApiController::class, 'appleLogin'])->name('apple.login');
+        Route::post('/apple-login-or-registration', [AppleLoginApiController::class, 'appleRegistration'])->name('apple-login-or-registration');
+
+        
         Route::post('/facebook-login', [FacebookLoginApiController::class, 'facebookLogin'])->name('facebook.login');
     });
     Route::group(['middleware' => ['BasicAuthApi','wdi.jwt.verify',]], function () {

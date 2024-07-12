@@ -469,11 +469,12 @@ class AuthApiService
 
             $iamPrincipalData->principal_type_xid = $principalTypeXid;
             $iamPrincipalData->save();
+            
 
             DB::commit();
 
 
-            return jsonResponseWithSuccessMessageApi(__('auth.otp_sent_successfully'), $iamPrincipalData, 200);
+            return jsonResponseWithSuccessMessageApi(__('auth.account_updated_sucessfully'), $iamPrincipalData, 200);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Resend Otp form service function failed: ' . $e->getMessage());
