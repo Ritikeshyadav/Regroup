@@ -44,6 +44,10 @@ class BasicAuthApi
             app()->setLocale($lang);
         }
 
+        // dd('middleware');
+        
+        // \Auth::login($token['sub']);
+
         return $next($request);
     }
 }
