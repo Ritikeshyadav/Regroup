@@ -365,6 +365,7 @@ class AuthApiService
 
             $data = IamPrincipal::select(
                 'id',
+                'principal_type_xid',
                 'google_id',
                 'apple_id',
                 'user_name',
