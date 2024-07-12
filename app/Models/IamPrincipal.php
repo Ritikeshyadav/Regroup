@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\IamPrincipalType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -41,6 +42,10 @@ class IamPrincipal extends Authenticatable implements JWTSubject
     public function interestsLink()
     {
         return $this->hasMany(IamPrincipalManageInterestLink::class,'iam_principal_xid','id');
-        // return $this->hasMany(IamPrincipalManageInterestLink::class);
+    }
+
+    public function iamPrincipalType()
+    {
+        return $this->belongsTo(IamPrincipalType::class,'principal_type_xid');
     }
 }

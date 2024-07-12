@@ -134,7 +134,7 @@ class ProfileDetailsApiController extends Controller
     }
 
     /*
-     * Created By : Ritikesg Yadav
+     * Created By : Ritikesh Yadav
      * Created At : 09 July 2024
      * Use : To fetch user profile
     */
@@ -150,6 +150,50 @@ class ProfileDetailsApiController extends Controller
         }catch(Exception $e)
         {
             Log::error('Fetch profile function failed: '. $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    /*
+     * Created By : Ritikesh Yadav
+     * Created At : 09 July 2024
+     * Use : To fetch user notification setting
+    */
+    public function fetchNotificationSetting()
+    {
+        try{
+            return $this->ProfileDetailsApiService->fetchNotificationStatusService(auth()->user()->id);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch notification setting function failed: '. $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    /*
+     * Created By : Ritikesh Yadav
+     * Created At : 09 July 2024
+     * Use : To fetch user notification setting
+    */
+    public function updateNotificationSetting(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(),[
+                'group_notification' => 'nullable',
+                'community_notification' => 'nullable',
+                'follower_notification' => 'nullable',
+                'new_follower_notification' => 'nullable',
+                'direct_message_notification' => 'nullable',
+            ]);
+            if($validator->fails())
+            {
+                Log::error('Update notificaiton status validation failed: '. $validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors(),400);
+            }
+            return $this->ProfileDetailsApiService->updateNotificationStatusService($request,auth()->user()->id);
+        }catch(Exception $e)
+        {
+            Log::error('update notification setting function failed: '. $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }

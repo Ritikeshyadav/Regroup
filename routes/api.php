@@ -8,6 +8,7 @@ use App\Http\Controllers\APIs\GoogleLoginApiController;
 
 use App\Http\Controllers\APIs\LogoutApiController;
 use App\Http\Controllers\APIs\ManageActivitiesApiController;
+use App\Http\Controllers\APIs\ManageCMSController;
 use App\Http\Controllers\APIs\ManageInterestApiController;
 use App\Http\Controllers\APIs\ManageProductApiController;
 use App\Http\Controllers\APIs\NotificationApiController;
@@ -120,8 +121,20 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::get('/search-community', [ManageCommunitiesApiController::class, 'searchCommunity']);
 
             
+            
             // ================================send mail============================//
             Route::post('/send-mail',[ManageCommunitiesApiController::class,'sendMail']);
+
+            // ===========================( Manage CMS Api)===============================//
+            Route::get('/fetch-faqs',[ManageCMSController::class, 'fetchFAQs']);
+            Route::post('/contact-us',[ManageCMSController::class, 'storeContactUs']);
+            Route::post('/bug-report',[ManageCMSController::class, 'storeBugReport']);
+            Route::get('/fetch-privacy-policy',[ManageCMSController::class, 'fetchPrivacyPolicy']);
+            Route::get('/fetch-terms-and-condition',[ManageCMSController::class, 'fetchTermsAndCondition']);
+
+            // ===============================( Notification's )=============================== //
+            Route::get('/fetch-notification-settings',[ProfileDetailsApiController::class, 'fetchNotificationSetting']);
+            Route::post('/update-notification-settings',[ProfileDetailsApiController::class, 'updateNotificationSetting']);
         });
     });
 });

@@ -18,6 +18,7 @@ use Throwable;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Mail\UpdatePasswordOtp;
 use App\Services\APIs\ProfileDetailsApiService;
+use GrahamCampbell\ResultType\Success;
 
 class BusinessProfileDetailsApiService
 {
@@ -191,6 +192,7 @@ class BusinessProfileDetailsApiService
     public function sendMailOtpForUpdatePasswordService($email,$iamprincipal_id)
     {
         try{
+            DB::beginTransaction();
             $otp = generateRandomOTP();
             IamPrincipalOtp::updateOrCreate(['principal_xid'=>$iamprincipal_id],[
                 'email_id' => $email,
@@ -199,10 +201,12 @@ class BusinessProfileDetailsApiService
                 'valid_till' => Carbon::now()->addMinutes(2),
                 'is_used' => 0,
             ]);
+            DB::commit();
             Mail::to($email)->send(new UpdatePasswordOtp($otp));
             return jsonResponseWithSuccessMessageApi(__('success.otp_sent_successfully'), [], 200);
         }catch(Exception $e)
         {
+            DB::rollBack();
             Log::error('Send mail otp for update password service function failed: '. $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
@@ -211,7 +215,7 @@ class BusinessProfileDetailsApiService
     /**
      * Created By : Ritikesh Yadav
      * Created At : 10 July 2024
-     * Use : To send otp on mail for update password service 
+     * Use : To verify otp for update password service 
      */
     public function verifyOtpForUpdatePasswordService($iamprincipal_id,$request,$storedOtp)
     {
@@ -220,6 +224,7 @@ class BusinessProfileDetailsApiService
             
             if($storedOtp->otp_code == $request->otp)
             {
+                IamPrincipalOtp::where('principal_xid',$iamprincipal_id)->update(['is_used'=>1]);
                 IamPrincipal::where('id',$iamprincipal_id)->update(['password_hash'=>Hash::make($request->new_password)]);
                 DB::commit();
                 return jsonResponseWithSuccessMessageApi(__('success.update_data'),200);
