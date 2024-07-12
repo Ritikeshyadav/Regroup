@@ -164,8 +164,7 @@ class AuthApiService
                 if ($user && Hash::check($request->password, $user->password_hash)) {
                     $token = JWTAuth::fromUser($user);
                     $responseData['access-token'] = $token;
-                    $responseData['user_data'] = $user;
-                    // \Auth::login($user);
+                    $responseData['id'] = $user['id'];
                     return jsonResponseWithSuccessMessageApi(__('auth.sign_in'), $responseData, 201);
                 } else {
                     Log::error('User email address not found');

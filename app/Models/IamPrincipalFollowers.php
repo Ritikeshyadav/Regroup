@@ -13,4 +13,13 @@ class IamPrincipalFollowers extends Model
     protected $table = 'iam_principal_followers';
 
     protected $fillable = ['iam_principal_xid','following_iam_principal_xid'];
+
+    public function follower()
+    {
+        return $this->belongsTo(IamPrincipal::class,'iam_principal_xid');
+    }
+    public function following()
+    {
+        return $this->belongsTo(IamPrincipal::class,'following_iam_principal_xid');
+    }
 }
