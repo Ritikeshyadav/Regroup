@@ -198,4 +198,99 @@ class ProfileDetailsApiController extends Controller
         }
     }
 
+    /*
+     * Created By : Ritikesh Yadav
+     * Created At : 09 July 2024
+     * Use : To fetch user notification setting
+    */
+    public function blockProfile(Request $request)
+    {
+        try{
+            $validator = validator::make($request->all(),[
+                'blocked_iam_principal_xid' => 'required',
+            ]);
+            if($validator->fails())
+            {
+                Log::error('block profile function validation error : '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors(),400);
+            }
+            return $this->ProfileDetailsApiService->blockProfileService($request,auth()->user()->id);
+        }catch(Exception $e)
+        {
+            Log::error('Blocked profile function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 12 July 2024
+     * Use : To fetch blocked profile
+     */
+    public function fetchBlockedProfile()
+    {
+        try{
+            return $this->ProfileDetailsApiService->fetchBlockedProfileService();
+        }catch(Exception $e)
+        {
+            Log::error('Fetch blocked profile function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 12 July 2024
+     * Use : To fetch Follower
+     */
+    public function fetchFollowers()
+    {
+        try{
+            return $this->ProfileDetailsApiService->fetchFollowersService();
+        }catch(Exception $e)
+        {
+            Log::error('Fetch follower function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 12 July 2024
+     * Use : To fetch Following
+     */
+    public function fetchFollowings()
+    {
+        try{
+            return $this->ProfileDetailsApiService->fetchFollowingsService();
+        }catch(Exception $e)
+        {
+            Log::error('Fetch following function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 12 July 2024
+     * Use : To follow users
+     */
+    public function followUsers(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(),[
+                'following_iam_principal_xid'=>'required',
+            ]);
+            if($validator->fails())
+            {
+                Log::error('Follow Users function validation failed: '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors(),409);
+            }
+            return $this->ProfileDetailsApiService->storeFollowUserService($request);
+        }catch(Exception $e)
+        {
+            Log::error('Follow user function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
 }

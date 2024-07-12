@@ -3,6 +3,7 @@
 namespace App\Services\APIs;
 
 use App\Models\IamPrincipal;
+use App\Models\IamPrincipalBlockedProfile;
 use App\Models\IamRole;
 use App\Models\IamPrincipalFollowers;
 use Illuminate\Http\Request;
@@ -255,7 +256,7 @@ class ProfileDetailsApiService
 
     /**
      * Created By : Ritikesh Yadav
-     * Created At : 10 July 2024
+     * Created At : 11 July 2024
      * Use : To fetch notification service 
      */
     public function fetchNotificationStatusService($iam_principal_id)
@@ -274,7 +275,7 @@ class ProfileDetailsApiService
 
     /**
      * Created By : Ritikesh Yadav
-     * Created At : 10 July 2024
+     * Created At : 11 July 2024
      * Use : To update notification service 
      */
     public function updateNotificationStatusService($request,$iam_principal_id)
@@ -288,6 +289,140 @@ class ProfileDetailsApiService
         {
             DB::rollBack();
             Log::error('Update notification service failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 12 July 2024
+     * Use : To store block profile
+     */
+    public function blockProfileService($request,$iam_principal_id)
+    {
+        try{
+            DB::beginTransaction();
+            $request['iam_principal_xid'] = $iam_principal_id;
+            if(IamPrincipalBlockedProfile::where(['iam_principal_xid'=>$iam_principal_id,'blocked_iam_principal_xid'=>$request->blocked_iam_principal_xid])->doesntExist())
+            {
+                IamPrincipalBlockedProfile::create($request->all());
+            }else{
+                IamPrincipalBlockedProfile::where(['iam_principal_xid'=>$iam_principal_id,'blocked_iam_principal_xid'=>$request->blocked_iam_principal_xid])->delete();
+            }
+            DB::commit();
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'),200);
+        }catch(Exception $e)
+        {
+            DB::rollBack();
+            Log::error('Block profile service failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 12 July 2024
+     * Use : To fetch blocked profile
+     */
+    public function fetchBlockedProfileService()
+    {
+        try{
+            $followers = IamPrincipalBlockedProfile::with(['blockedProfile'=>function($query){
+                $query->select('id','user_name','full_name','profile_photo');
+            }])
+            ->select('blocked_iam_principal_xid','iam_principal_xid')
+            ->where('iam_principal_xid',auth()->user()->id)
+            ->get();
+            if($followers == null)
+            {
+                Log::info('Blocked profile data not found.');
+                return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
+            }
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$followers,200);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch blocked profile service function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 12 July 2024
+     * Use : To fetch followers profile
+     */
+    public function fetchFollowersService()
+    {
+        try{
+            $followers = IamPrincipalFollowers::with(['follower'=>function($query){
+                $query->select('id','user_name','full_name','profile_photo');
+            }])
+            ->select('following_iam_principal_xid','iam_principal_xid')
+            ->where('following_iam_principal_xid',auth()->user()->id)
+            ->get();
+            if($followers == null)
+            {
+                Log::info('follower data not found.');
+                return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
+            }
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$followers,200);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch follower service function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 12 July 2024
+     * Use : To fetch following profile
+     */
+    public function fetchFollowingsService()
+    {
+        try{
+            $following = IamPrincipalFollowers::with(['following'=>function($query){
+                $query->select('id','user_name','full_name','profile_photo');
+            }])
+            ->select('following_iam_principal_xid','iam_principal_xid')
+            ->where('iam_principal_xid',auth()->user()->id)
+            ->get();
+            if($following == null)
+            {
+                Log::info('following data not found.');
+                return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
+            }
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$following,200);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch following service function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 12 July 2024
+     * Use : To follow users
+     */
+    public function storeFollowUserService($request)
+    {
+        try{
+            DB::beginTransaction();
+            $iam_principal_id = auth()->user()->id;
+            $request['iam_principal_xid'] = $iam_principal_id;
+            if(IamPrincipalFollowers::where(['iam_principal_xid'=>$iam_principal_id,'following_iam_principal_xid'=>$request->following_iam_principal_xid])->doesntExist())
+            {
+                IamPrincipalFollowers::create($request->all());
+            }else{
+                IamPrincipalFollowers::where(['iam_principal_xid'=>$iam_principal_id,'following_iam_principal_xid'=>$request->following_iam_principal_xid])->delete();
+            }
+            DB::commit();
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'),200);
+        }catch(Exception $e)
+        {
+            DB::rollBack();
+            Log::error('Store follow user service failed: '.$e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
