@@ -193,7 +193,7 @@ class ProfileDetailsApiController extends Controller
             return $this->ProfileDetailsApiService->updateNotificationStatusService($request,auth()->user()->id);
         }catch(Exception $e)
         {
-            Log::error('Fetch notification setting function failed: '. $e->getMessage());
+            Log::error('update notification setting function failed: '. $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
