@@ -46,6 +46,11 @@ return new class extends Migration
             $table->string('weight')->nullable();
             $table->string('batting_average')->nullable();
             $table->enum('is_active', [1, 0])->default(1)->comment('1=Active, 0=InActive');
+            $table->boolean('group_notification')->default(1)->comment('1=Active, 0=InActive');
+            $table->boolean('community_notification')->default(1)->comment('1=Active, 0=InActive');
+            $table->boolean('follower_notification')->default(1)->comment('1=Active, 0=InActive');
+            $table->boolean('new_follower_notification')->default(1)->comment('1=Active, 0=InActive');
+            $table->boolean('direct_message_notification')->default(1)->comment('1=Active, 0=InActive');
             $table->integer('created_by')->nullable();
             $table->integer('modified_by')->nullable();
             $table->softDeletes();

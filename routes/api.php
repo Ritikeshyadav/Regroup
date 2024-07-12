@@ -98,6 +98,14 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::get('/fetch-role', [ProfileDetailsApiController::class, 'fetchRole']);
             Route::post('/update-profile', [ProfileDetailsApiController::class, 'updateProfile']);
             Route::post('/delete-profile', [ProfileDetailsApiController::class, 'deleteProfile']);
+            Route::post('/block-profile', [ProfileDetailsApiController::class, 'blockProfile']);
+            Route::post('/share-profile', [ProfileDetailsApiController::class, 'shareProfile']);
+            Route::get('/fetch-blocked-profile', [ProfileDetailsApiController::class, 'fetchBlockedProfile']);
+
+            // ============================( Follow API's)===================================//
+            Route::get('/fetch-followers',[ProfileDetailsApiController::class, 'fetchFollowers']);
+            Route::get('/fetch-following',[ProfileDetailsApiController::class, 'fetchFollowings']);
+            Route::post('/follow-user',[ProfileDetailsApiController::class, 'followUsers']);
 
 
             //========================( Manage Interest API'S)=======================================//
@@ -132,6 +140,7 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             // ===============================( Notification's )=============================== //
             Route::get('/fetch-notification-settings',[ProfileDetailsApiController::class, 'fetchNotificationSetting']);
             Route::post('/update-notification-settings',[ProfileDetailsApiController::class, 'updateNotificationSetting']);
+            
         });
     });
 });
