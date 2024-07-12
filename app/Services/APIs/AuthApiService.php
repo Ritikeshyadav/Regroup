@@ -164,7 +164,7 @@ class AuthApiService
                 if ($user && Hash::check($request->password, $user->password_hash)) {
                     $token = JWTAuth::fromUser($user);
                     $responseData['access-token'] = $token;
-                    $responseData['id'] = $user['id'];
+                    $responseData['user_data'] = $user;
                     // \Auth::login($user);
                     return jsonResponseWithSuccessMessageApi(__('auth.sign_in'), $responseData, 201);
                 } else {
