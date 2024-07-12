@@ -128,6 +128,10 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/bug-report',[ManageCMSController::class, 'storeBugReport']);
             Route::get('/fetch-privacy-policy',[ManageCMSController::class, 'fetchPrivacyPolicy']);
             Route::get('/fetch-terms-and-condition',[ManageCMSController::class, 'fetchTermsAndCondition']);
+
+            // ===============================( Notification's )=============================== //
+            Route::get('/fetch-notification-settings',[ProfileDetailsApiController::class, 'fetchNotificationSetting']);
+            Route::post('/update-notification-settings',[ProfileDetailsApiController::class, 'updateNotificationSetting']);
         });
     });
 });

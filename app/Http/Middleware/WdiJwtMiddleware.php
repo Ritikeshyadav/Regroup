@@ -37,6 +37,12 @@ class WdiJwtMiddleware
             return response()->json(['status' => 'error', 'status_code' => 401, 'message' => 'Invalid token'], 401);
         }
 
+        $token = readHeaderToken();
+        if(!$token)
+        {
+            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+        }
+
         return $next($request);
     }
 }

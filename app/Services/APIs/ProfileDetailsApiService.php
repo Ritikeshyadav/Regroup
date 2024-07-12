@@ -252,4 +252,43 @@ class ProfileDetailsApiService
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 10 July 2024
+     * Use : To fetch notification service 
+     */
+    public function fetchNotificationStatusService($iam_principal_id)
+    {
+        try{
+            $notificationStatus = IamPrincipal::select('group_notification','community_notification','follower_notification','new_follower_notification','direct_message_notification')
+                ->where('id',$iam_principal_id)
+                ->first();
+            return jsonResponseWithSuccessMessageApi(__('Success.data_fetched_successfully'),$notificationStatus,200);
+        }catch(Exception $e)
+        {
+            Log::error('Get notification status service failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 10 July 2024
+     * Use : To update notification service 
+     */
+    public function updateNotificationStatusService($request,$iam_principal_id)
+    {
+        try{
+            DB::beginTransaction();
+            IamPrincipal::where('id',$iam_principal_id)->update($request->all());
+            DB::commit();
+            return jsonResponseWithSuccessMessageApi(__('success.update_data'),200);
+        }catch(Exception $e)
+        {
+            DB::rollBack();
+            Log::error('Update notification service failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
 }
