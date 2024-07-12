@@ -119,13 +119,13 @@ class GoogleLoginApiController extends Controller
                 $principal_type_xid = 1; // for Google Login user for new registered user
 
             }
-
+dd( $userData );
 
 
             //store user data in iam_principal
             $user_data_array = [
                 'principal_type_xid' => 3,
-                'principal_source_xid' => 3,
+                'principal_source_xid' => 3, // for google 
                 'google_id' => $userData['id'],
                 'email_address' => $userData['email'],
                 'last_login_datetime' => Carbon::now(),
@@ -141,7 +141,7 @@ class GoogleLoginApiController extends Controller
                 return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'));
             }
             DB::commit();
-            return jsonResponseWithSuccessMessage(__('auth.login_in'), $response, 200);
+            return jsonResponseWithSuccessMessage(__('auth.proceed_to_register'), $response, 200);
         } catch (Exception $e) {
             Log::error('Sign in with Google controller function failed: ' . $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
