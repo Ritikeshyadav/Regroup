@@ -90,7 +90,7 @@ class ManageCMSApiService
         try{
             $data = ManagePrivacyPolicy::select('id','content')
             ->where(['is_active'=>1,'iam_principal_type_xid'=>$this->getIamPrincipalType($iam_principal_id)])
-            ->get();
+            ->first();
             if($data == null)
             {
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),200);
@@ -113,7 +113,7 @@ class ManageCMSApiService
         try{
             $data = ManageTermsAndCondition::select('id','content')
             ->where(['is_active'=>1,'iam_principal_type_xid'=>$this->getIamPrincipalType($iam_principal_id)])
-            ->get();
+            ->first();
             if($data == null)
             {
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),200);
