@@ -16,9 +16,9 @@ class FacebookLoginApiController extends Controller
 {
     public function facebookLogin(Request $request)
     {
-        
+
         try {
-           
+
             $validator = Validator::make($request->all(), [
                 // 'principal_source_xid' => 'required|integer|exists:iam_principal_source,id',
                 'facebook_auth_token' => 'required|string',
@@ -43,19 +43,19 @@ class FacebookLoginApiController extends Controller
 
             // $principal_type_xid = 1; // for user
             $userData = [
-                'principal_source_xid' => 5  ,// for FACEBOOK 
-                'principal_type_xid' =>3, //means not not added in Registration
+                'principal_source_xid' => 5,// for FACEBOOK 
+                'principal_type_xid' => 3, //means not not added in Registration
                 'facebook_id' => $request->facebook_auth_token,
                 // 'email_address' => $request->email,
                 // 'first_name' => $request->first_name,
                 // 'last_name' => $request->last_name,
-                'last_login_datetime' =>  Carbon::now(),
-                'is_profile_updated'=> 0,
+                'last_login_datetime' => Carbon::now(),
+                'is_profile_updated' => 0,
             ];
 
             DB::beginTransaction();
             if ($iamPrincipalData) {
-                $user = $iamPrincipalData->update(['last_login_datetime' =>  Carbon::now()]);
+                $user = $iamPrincipalData->update(['last_login_datetime' => Carbon::now()]);
                 $response = generateToken($iamPrincipalData);
             } else {
                 $iamPrincipalData = IamPrincipal::create($userData);
