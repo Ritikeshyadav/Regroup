@@ -30,9 +30,9 @@ class ManageCMSApiService
             ->get();
             if($data == null)
             {
-                return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),200);
+                return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),[],200);
             }
-            return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),$data,200);
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$data,200);
         }catch(Exception $e)
         {
             Log::error('Fetch FAQs service function failed: '.$e->getMessage());
@@ -93,9 +93,9 @@ class ManageCMSApiService
             ->first();
             if($data == null)
             {
-                return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),200);
+                return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),[],200);
             }
-            return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),$data,200);
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$data,200);
         }catch(Exception $e)
         {
             Log::error('Fetch privacy policy service function failed: '.$e->getMessage());
@@ -116,9 +116,9 @@ class ManageCMSApiService
             ->first();
             if($data == null)
             {
-                return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),200);
+                return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),[],200);
             }
-            return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),$data,200);
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$data,200);
         }catch(Exception $e)
         {
             Log::error('Fetch terms and condition service function failed: '.$e->getMessage());
