@@ -119,7 +119,7 @@ class GoogleLoginApiController extends Controller
                 $principal_type_xid = 1; // for Google Login user for new registered user
 
             }
-dd( $userData );
+
 
 
             //store user data in iam_principal

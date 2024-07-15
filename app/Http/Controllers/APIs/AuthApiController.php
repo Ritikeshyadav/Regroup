@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-use GuzzleHttp\Client;
 class AuthApiController extends Controller
 {
 
@@ -290,25 +289,6 @@ class AuthApiController extends Controller
     public function getAuthUserDetails(Request $request)
     {
         try {
-
-    //         $apiKey = "AIzaSyDdTfKwZav5Qyg3ht88N76lDTFntOe30dQ";
-    //         //AIzaSyDdTfKwZav5Qyg3ht88N76lDTFntOe30dQ
-    //         $input = "Hotel Swastik Restaurant And Bar";
-    //         $client = new Client();
-    //         $url = 'https://maps.googleapis.com/maps/api/place/findplacefromtext/json';
-    
-    //         $response = $client->get($url, [
-    //             'query' => [
-    //                 'fields' => 'formatted_address,name,rating,opening_hours,geometry',
-    //                 'input' => $input,
-    //                 'inputtype' => 'textquery',
-    //                 'key' => $apiKey
-    //             ]
-    //         ]);
-    
-    //         $data = json_decode($response->getBody(), true);
-    // // dd($data);
-    //         return response()->json($data);
             $token = readHeaderToken();
             if ($token) {
 

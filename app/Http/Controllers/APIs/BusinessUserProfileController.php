@@ -57,7 +57,7 @@ class BusinessUserProfileController extends Controller
     }
 
 
-      /**
+    /**
      * Created By : Hritik Yadav
      * Created at : 09 July 2024
      * Use : To Update Business Profile at step 1
@@ -97,13 +97,12 @@ class BusinessUserProfileController extends Controller
      */
     public function fetchBusinessProfile()
     {
-        try{
+        try {
             $token = readHeaderToken();
             return $token ? $this->BusinessProfileDetailsApiService->fetchBusinessProfileService($token['sub']) : jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
-        }catch(Exception $e)
-        {
-            Log::error('Fetch bussiness profile function failed: '. $e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        } catch (Exception $e) {
+            Log::error('Fetch bussiness profile function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -114,11 +113,10 @@ class BusinessUserProfileController extends Controller
      */
     public function updateBusinessProfileFunction(Request $request)
     {
-        try{
+        try {
             $token = readHeaderToken();
-            if($token)
-            {
-                $validator = validator::make($request->all(),[
+            if ($token) {
+                $validator = validator::make($request->all(), [
                     'business_name' => 'required',
                     'business_username' => 'required',
                     'business_owner_name' => 'required',
@@ -129,19 +127,17 @@ class BusinessUserProfileController extends Controller
                     'business_profile' => 'mimes:jpeg,jpg,png,gif|max:2048',
                 ]);
 
-                if($validator->fails())
-                {
+                if ($validator->fails()) {
                     $validationErrors = $validator->errors()->all();
                     Log::error("Update Business Profile validation error: " . implode(", ", $validationErrors));
-                    return jsonResponseWithErrorMessageApi($validationErrors, 403);   
+                    return jsonResponseWithErrorMessageApi($validationErrors, 403);
                 }
-                return $this->BusinessProfileDetailsApiService->updateBusinessProfile($token['sub'],$request);
+                return $this->BusinessProfileDetailsApiService->updateBusinessProfile($token['sub'], $request);
             }
-            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'),409);
-        }catch(Exception $e)
-        {
-            Log::error('Update business profile function failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+        } catch (Exception $e) {
+            Log::error('Update business profile function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -152,72 +148,64 @@ class BusinessUserProfileController extends Controller
      */
     public function updatePasswordSendMailOtp(Request $request)
     {
-        try{
+        try {
             $token = readHeaderToken();
-            if($token)
-            {
-                $validator = validator::make($request->all(),[
+            if ($token) {
+                $validator = validator::make($request->all(), [
                     'current_password' => 'required',
                     'new_password' => 'required|required_with:confirm_password|same:confirm_password|different:current_password',
                 ]);
-                if($validator->fails())
-                {
+                if ($validator->fails()) {
                     $validationErrors = $validator->errors()->all();
                     Log::error("Update Business Profile validation error: " . implode(", ", $validationErrors));
                     return jsonResponseWithErrorMessageApi($validationErrors, 403);
                 }
 
                 // getting user password for checking purpose
-                $userData = IamPrincipal::where('id',$token['sub'])->first();
+                $userData = IamPrincipal::where('id', $token['sub'])->first();
 
                 // checking new password and old password
-                if(!Hash::check($request->current_password, $userData->password_hash))
-                {
+                if (!Hash::check($request->current_password, $userData->password_hash)) {
                     Log::error("Update Business Profile validation error: password not matched");
                     return jsonResponseWithErrorMessageApi('password not matched', 403);
                 }
 
-                return $this->BusinessProfileDetailsApiService->sendMailOtpForUpdatePasswordService($userData->email_address,$token['sub']);
+                return $this->BusinessProfileDetailsApiService->sendMailOtpForUpdatePasswordService($userData->email_address, $token['sub']);
             }
-            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'),409);
+            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
 
-        }catch(Exception $e)
-        {
-            Log::error('Send mail otp for update password function failed: '.$e->getMessage());
-            return jsonResponseWithSuccessMessageApi(__('auth.something_went_wrong'),500);
+        } catch (Exception $e) {
+            Log::error('Send mail otp for update password function failed: ' . $e->getMessage());
+            return jsonResponseWithSuccessMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
     public function verifyUpdatePasswordOtp(Request $request)
     {
-        try{
+        try {
             $token = readHeaderToken();
-            if($token)
-            {
-                $validator = Validator::make($request->all(),[
+            if ($token) {
+                $validator = Validator::make($request->all(), [
                     'otp' => 'required',
                     'new_password' => 'required',
                 ]);
-                if($validator->fails())
-                { 
+                if ($validator->fails()) {
                     $validationErrors = $validator->errors()->all();
                     Log::error("Update Business Profile validation error: " . implode(", ", $validationErrors));
-                    return jsonResponseWithErrorMessageApi($validationErrors, 403);                   
+                    return jsonResponseWithErrorMessageApi($validationErrors, 403);
                 }
-                $storedOtp = IamPrincipalOtp::where("principal_xid",$token['sub'])->first();
-                if(!$storedOtp || carbon::now() > $storedOtp->valid_till  || $storedOtp->otp_code != $request->otp || $storedOtp->is_used == 1)
-                {
-                    $validationErrors = !$storedOtp ? 'OTP not found!' : ( carbon::now() > $storedOtp->valid_till ? 'OTP has been expired!' : ($storedOtp->otp_code != $request->otp ? 'OTP not matched!' :'OTP is already used!' ));
+                $storedOtp = IamPrincipalOtp::where("principal_xid", $token['sub'])->first();
+                if (!$storedOtp || carbon::now() > $storedOtp->valid_till || $storedOtp->otp_code != $request->otp || $storedOtp->is_used == 1) {
+                    $validationErrors = !$storedOtp ? 'OTP not found!' : (carbon::now() > $storedOtp->valid_till ? 'OTP has been expired!' : ($storedOtp->otp_code != $request->otp ? 'OTP not matched!' : 'OTP is already used!'));
                     Log::error("Update Business Profile validation error: " . $validationErrors);
                     return jsonResponseWithErrorMessageApi($validationErrors, 403);
                 }
-                return $this->BusinessProfileDetailsApiService->verifyOtpForUpdatePasswordService($token['sub'],$request,$storedOtp);
+                return $this->BusinessProfileDetailsApiService->verifyOtpForUpdatePasswordService($token['sub'], $request, $storedOtp);
             }
-            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'),409);
-        }catch(Exception $e)
-        {
-            Log::error('Verify otp for update password function failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+        } catch (Exception $e) {
+            Log::error('Verify otp for update password function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -229,8 +217,8 @@ class BusinessUserProfileController extends Controller
                 'business_name' => 'required',
                 'business_owner_name' => 'required',
                 'business_location' => 'required',
-                'business_type_xid' =>'required'
-                
+                'business_type_xid' => 'required'
+
             ],
         );
     }
@@ -241,19 +229,19 @@ class BusinessUserProfileController extends Controller
             [
                 'business_contact_number' => 'required|integer|digits:10',
                 'business_email' => 'required|email|max:50',//regex:/^[\w\.\-]+@([\w\-]+\.)+[\w\-]{2,4}$/
-                'business_handle' =>'required',
+                'business_handle' => 'required',
                 'opening_hours' => 'required',
-                'website_link'=>'required',
-                'google_review_link'=>'required',
-                'tags'=>'required',
-                'business_logo'=>'required',
-                'banner_image'=>'required',
-                
+                'website_link' => 'required',
+                'google_review_link' => 'required',
+                'tags' => 'required',
+                'business_logo' => 'required',
+                'banner_image' => 'required',
+
             ],
         );
     }
 
 
-    
+
 
 }
