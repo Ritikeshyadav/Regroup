@@ -1,0 +1,5 @@
+[08-Jul-2024 08:06:47 UTC] PHP Warning:  require(/home/regroup/public_html/vendor/autoload.php): Failed to open stream: No such file or directory in /home/regroup/public_html/artisan on line 9
+[08-Jul-2024 08:06:47 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/regroup/public_html/vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php82/root/usr/share/pear') in /home/regroup/public_html/artisan:9
+Stack trace:
+#0 {main}
+  thrown in /home/regroup/public_html/artisan on line 9
