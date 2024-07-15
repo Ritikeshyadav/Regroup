@@ -20,24 +20,22 @@ class ManageInterestApiController extends Controller
 
     public function fetchManageInterests(Request $request)
     {
-        try{
+        try {
             $token = readHeaderToken();
             return $token ? $this->manageInterestApiService->fetchInterestService() : jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
-        }catch(Exception $e)
-        {
-            Log::error('fetch manage interests function failed: '. $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('fetch manage interests function failed: ' . $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
     public function storeSelectedInterests(Request $request)
     {
-        try{
+        try {
             $token = readHeaderToken();
             return $token ? $this->manageInterestApiService->StoreUserSelectedInterest($request->all(), $token['sub']) : jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
-        }catch(Exception $e)
-        {
-            Log::error('store user selected interest function failed: '. $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('store user selected interest function failed: ' . $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
