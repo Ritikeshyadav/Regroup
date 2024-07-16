@@ -382,9 +382,9 @@ class ProfileDetailsApiService
                 Log::info('follower data not found.');
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
             }
-            return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
+            // return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$followers,200);
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$followers,200);
 
-            // return jsonResponseWithSuccessMessageApi("Shubhammmmmmmmm",$followers,200);
         }catch(Exception $e)
         {
             Log::error('Fetch follower service function failed: '.$e->getMessage());
