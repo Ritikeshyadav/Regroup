@@ -114,9 +114,10 @@ class GoogleLoginApiController extends Controller
 
             if ($isExistIamPrincipalData) {
                 $principal_type_xid = $isExistIamPrincipalData->principal_type_xid;
+                // return jsonResponseWithSuccessMessage(__('auth.email_already_in_use'));
             } else {
 
-                $principal_type_xid = 1; // for Google Login user for new registered user
+                $principal_type_xid = 3; // for Google Login user for new registered user
 
             }
 
@@ -124,7 +125,7 @@ class GoogleLoginApiController extends Controller
 
             //store user data in iam_principal
             $user_data_array = [
-                'principal_type_xid' => 3,
+                'principal_type_xid' => $principal_type_xid,
                 'principal_source_xid' => 3, // for google 
                 'google_id' => $userData['id'],
                 'email_address' => $userData['email'],
