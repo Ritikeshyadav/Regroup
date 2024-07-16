@@ -293,4 +293,25 @@ class ProfileDetailsApiController extends Controller
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 12 July 2024
+     * Use : To remove follower
+     */
+    public function removeFollower(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(),['iam_principal_xid'=>'required|exists:iam_principal_followers,iam_principal_xid']);
+            if($validator->fails())
+            {
+                log::error('Remove follower function validation error: '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors(),409);
+            }
+            return $this->ProfileDetailsApiService->removeFollower($request);
+        }catch(Exception $e)
+        {
+            
+        }
+    }
 }
