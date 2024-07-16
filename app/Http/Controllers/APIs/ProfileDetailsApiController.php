@@ -243,10 +243,10 @@ class ProfileDetailsApiController extends Controller
      * Created At : 12 July 2024
      * Use : To fetch Follower
      */
-    public function fetchFollowers()
+    public function fetchFollowers(Request $request)
     {
         try{
-            return $this->ProfileDetailsApiService->fetchFollowersService();
+            return $this->ProfileDetailsApiService->fetchFollowersService($request);
         }catch(Exception $e)
         {
             Log::error('Fetch follower function failed: '.$e->getMessage());
@@ -259,10 +259,10 @@ class ProfileDetailsApiController extends Controller
      * Created At : 12 July 2024
      * Use : To fetch Following
      */
-    public function fetchFollowings()
+    public function fetchFollowings(Request $request)
     {
         try{
-            return $this->ProfileDetailsApiService->fetchFollowingsService();
+            return $this->ProfileDetailsApiService->fetchFollowingsService($request);
         }catch(Exception $e)
         {
             Log::error('Fetch following function failed: '.$e->getMessage());

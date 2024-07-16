@@ -351,15 +351,32 @@ class ProfileDetailsApiService
      * Created At : 12 July 2024
      * Use : To fetch followers profile
      */
-    public function fetchFollowersService()
+    public function fetchFollowersService($request)
     {
         try{
-            $followers = IamPrincipalFollowers::with(['follower'=>function($query){
-                $query->select('id','user_name','full_name','profile_photo');
+            $search = $request->search;
+            $followers = IamPrincipalFollowers::whereHas('follower', function($query) use ($search) {
+                $query->when($search != null, function($q) use ($search) {
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->where('user_name', 'like', '%'.$search.'%');
+                    $q->orWhere('full_name', 'like', '%'.$search.'%');
+                }, function($q) {
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                });
+            })
+            ->with(['follower' => function($query) use ($search) {
+                $query->when($search != null, function($q) use ($search) {
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->where('user_name', 'like', '%'.$search.'%');
+                    $q->orWhere('full_name', 'like', '%'.$search.'%');
+                }, function($q) {
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                });
             }])
-            ->select('following_iam_principal_xid','iam_principal_xid')
-            ->where('following_iam_principal_xid',auth()->user()->id)
+            ->where('following_iam_principal_xid', auth()->user()->id)
+            ->select('following_iam_principal_xid', 'iam_principal_xid')
             ->get();
+
             if($followers == null)
             {
                 Log::info('follower data not found.');
@@ -378,11 +395,27 @@ class ProfileDetailsApiService
      * Created At : 12 July 2024
      * Use : To fetch following profile
      */
-    public function fetchFollowingsService()
+    public function fetchFollowingsService($request)
     {
         try{
-            $following = IamPrincipalFollowers::with(['following'=>function($query){
-                $query->select('id','user_name','full_name','profile_photo');
+            $search = $request->search;
+            $following = IamPrincipalFollowers::whereHas('following',function($query) use ($search){
+                $query->when($search != null,function($q) use ($search){
+                    $q->select('id','user_name','full_name','profile_photo');
+                    $q->where('user_name','like','%'.$search.'%');
+                    $q->orWhere('full_name','like','%'.$search.'%');
+                },function($q){
+                    $q->select('id','user_name','full_name','profile_photo');
+                });
+            })
+            ->with(['following'=>function($query) use ($search){
+                $query->when($search != null,function($q) use ($search){
+                    $q->select('id','user_name','full_name','profile_photo');
+                    $q->where('user_name','like','%'.$search.'%');
+                    $q->orWhere('full_name','like','%'.$search.'%');
+                },function($q){
+                    $q->select('id','user_name','full_name','profile_photo');
+                });
             }])
             ->select('following_iam_principal_xid','iam_principal_xid')
             ->where('iam_principal_xid',auth()->user()->id)
