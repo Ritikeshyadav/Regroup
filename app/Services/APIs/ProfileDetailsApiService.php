@@ -382,7 +382,7 @@ class ProfileDetailsApiService
                 Log::info('follower data not found.');
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
             }
-            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$followers,200);
+            return jsonResponseWithSuccessMessageApi("Shubhammmmmmmmm",$followers,200);
         }catch(Exception $e)
         {
             Log::error('Fetch follower service function failed: '.$e->getMessage());
@@ -456,6 +456,27 @@ class ProfileDetailsApiService
         {
             DB::rollBack();
             Log::error('Store follow user service failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 16 July 2024
+     * Use : To remove followes
+     */
+    public function removeFollower($request)
+    {
+        try{
+            DB::beginTransaction();
+            IamPrincipalFollowers::where(['iam_principal_xid'=>$request->iam_principal_xid,'following_iam_principal_xid'=>auth()->user()->id])->delete();
+            DB::commit();
+            return jsonResponseWithSuccessMessage('Follower removed');
+
+        }catch(Exception $e)
+        {
+            DB::rollBack();
+            Log::error('Remove follower service failed: '.$e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }

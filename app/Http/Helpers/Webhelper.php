@@ -42,7 +42,7 @@ if (!function_exists('jsonResponseWithSuccessMessageApi')) {
         return response()->json($response, $statusCode);
 
         // Stop further execution (optional)
-        exit();
+        // exit();
     }
 }
 
