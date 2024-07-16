@@ -43,9 +43,20 @@ class FacebookLoginApiController extends Controller
             // }
 
             // $principal_type_xid = 1; // for user
+            $isExistIamPrincipalData = IamPrincipal::where('facebook_id', $request->facebook_auth_token)->first();
+
+
+            if ($isExistIamPrincipalData) {
+                $principal_type_xid = $isExistIamPrincipalData->principal_type_xid;
+                // return jsonResponseWithSuccessMessage(__('auth.email_already_in_use'));
+            } else {
+
+                $principal_type_xid = 3; // for Google Login user for new registered user
+
+            }
             $userData = [
                 'principal_source_xid' => 5,// for FACEBOOK 
-                'principal_type_xid' => 3, //means not not added in Registration
+                'principal_type_xid' => $principal_type_xid, //means not not added in Registration
                 'facebook_id' => $request->facebook_auth_token,
                 // 'email_address' => $request->email,
                 // 'first_name' => $request->first_name,
