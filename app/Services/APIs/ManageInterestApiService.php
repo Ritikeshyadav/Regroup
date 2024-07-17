@@ -80,7 +80,12 @@ class ManageInterestApiService
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
-
+    
+    /*
+        * Created By : Ritikesh Yadav 
+        * Created At : 05 July 2024
+        * Use : Store users selected interest 
+    */
     public function storeInterest($interestArray, $request = null)
     {
         try{
@@ -115,6 +120,11 @@ class ManageInterestApiService
         }
     }
 
+    /*
+        * Created By : Ritikesh Yadav 
+        * Created At : 05 July 2024
+        * Use : remove interest 
+    */
     public function removeInterest($newArray)
     {
         try{

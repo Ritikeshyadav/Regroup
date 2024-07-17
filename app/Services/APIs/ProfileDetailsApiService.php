@@ -121,7 +121,7 @@ class ProfileDetailsApiService
     public function updateBothProfileService($iamprincipal_id, $request)
     {
         try {
-            DB::beginTransaction();            
+            DB::beginTransaction();
             $userData = IamPrincipal::select('id', 'profile_photo')->where('id', $iamprincipal_id)->first();
 
             if (isset($request->profile_image)) {
@@ -140,13 +140,11 @@ class ProfileDetailsApiService
             }
 
             $interestArray = json_decode($request->interest);
-            if($interestArray)
-            {
+            if ($interestArray) {
                 $addInterestArray = (new ManageInterestApiService)->removeInterest($interestArray);
-                if($addInterestArray)
-                {
+                if ($addInterestArray) {
                     $emptyData['other_interest'] = null;
-                    (new ManageInterestApiService)->storeInterest($addInterestArray,$emptyData);
+                    (new ManageInterestApiService)->storeInterest($addInterestArray, $emptyData);
                 }
                 // remove profile_image key from request array
                 $newArray = \Illuminate\Support\Arr::except($request->all(), ['interest']);
@@ -211,7 +209,7 @@ class ProfileDetailsApiService
             $interestName = [];
             if ($data->interestsLink != null) {
                 foreach ($data->interestsLink as $interests) {
-                    $interestName[] = ['id'=>$interests->interest->id,'name'=>$interests->interest->name];
+                    $interestName[] = ['id' => $interests->interest->id, 'name' => $interests->interest->name];
                     // array_push($interestName, $interests->interest->name);
                 }
                 $data->interestName = $interestName;
@@ -323,12 +321,30 @@ class ProfileDetailsApiService
      * Created At : 12 July 2024
      * Use : To fetch blocked profile
      */
-    public function fetchBlockedProfileService()
+    public function fetchBlockedProfileService($request)
     {
         try {
-            $followers = IamPrincipalBlockedProfile::with(['blockedProfile' => function ($query) {
-                $query->select('id', 'user_name', 'full_name', 'profile_photo');
-            }])
+            $search = $request->search;
+            $followers = IamPrincipalBlockedProfile::whereHas('blockedProfile',
+                function ($query) use ($search) {
+                    $query->when($search != null, function ($q) use ($search) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->where('user_name', 'like', '%' . $search . '%');
+                        $q->orWhere('full_name', 'like', '%' . $search . '%');
+                    }, function ($q) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    });
+                }
+            )
+                ->with(['blockedProfile' => function ($query) use ($search) {
+                    $query->when($search != null, function ($q) use ($search) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->where('user_name', 'like', '%' . $search . '%');
+                        $q->orWhere('full_name', 'like', '%' . $search . '%');
+                    }, function ($q) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    });
+                }])
                 ->select('blocked_iam_principal_xid', 'iam_principal_xid')
                 ->where('iam_principal_xid', auth()->user()->id)
                 ->get();
@@ -371,6 +387,7 @@ class ProfileDetailsApiService
                     });
                 }])
                 ->where('following_iam_principal_xid', auth()->user()->id)
+                ->whereNotIn('iam_principal_xid',IamPrincipalBlockedProfile::where('iam_principal_xid',auth()->user()->id)->pluck('blocked_iam_principal_xid'))
                 ->select('following_iam_principal_xid', 'iam_principal_xid')
                 ->get();
 
@@ -462,7 +479,7 @@ class ProfileDetailsApiService
             DB::beginTransaction();
             IamPrincipalFollowers::where(['iam_principal_xid' => $request->iam_principal_xid, 'following_iam_principal_xid' => auth()->user()->id])->delete();
             DB::commit();
-            return jsonResponseWithSuccessMessageApi(__('success.update_data'),[],200);
+            return jsonResponseWithSuccessMessageApi(__('success.update_data'), [], 200);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Remove follower service failed: ' . $e->getMessage());
