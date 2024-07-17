@@ -89,7 +89,7 @@ class ProfileDetailsApiService
             ]);
 
             if ($validator->fails()) {
-                return jsonResponseWithErrorMessageApi($validator->errors(), 422);
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(), 403);
             }
 
             $data = IamPrincipal::find($request->id);
@@ -128,7 +128,7 @@ class ProfileDetailsApiService
             $userData = IamPrincipal::select('id','profile_photo')->where('id',$iamprincipal_id)->first();
 
             if ($validator->fails()) {
-                return jsonResponseWithErrorMessageApi($validator->errors(), 422);
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(), 403);
             }
 
             if (isset($request->profile_image)) {
@@ -172,7 +172,7 @@ class ProfileDetailsApiService
             ]);
 
             if ($validator->fails()) {
-                return jsonResponseWithErrorMessageApi($validator->errors(), 422);
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(), 422);
             }
 
             if ($request->id != $iamprincipal_id) {

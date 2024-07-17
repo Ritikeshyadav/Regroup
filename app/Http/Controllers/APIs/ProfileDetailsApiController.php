@@ -188,7 +188,7 @@ class ProfileDetailsApiController extends Controller
             if($validator->fails())
             {
                 Log::error('Update notificaiton status validation failed: '. $validator->errors());
-                return jsonResponseWithErrorMessageApi($validator->errors(),400);
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
             }
             return $this->ProfileDetailsApiService->updateNotificationStatusService($request,auth()->user()->id);
         }catch(Exception $e)
@@ -212,7 +212,7 @@ class ProfileDetailsApiController extends Controller
             if($validator->fails())
             {
                 Log::error('block profile function validation error : '.$validator->errors());
-                return jsonResponseWithErrorMessageApi($validator->errors(),400);
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
             }
             return $this->ProfileDetailsApiService->blockProfileService($request,auth()->user()->id);
         }catch(Exception $e)
@@ -284,7 +284,7 @@ class ProfileDetailsApiController extends Controller
             if($validator->fails())
             {
                 Log::error('Follow Users function validation failed: '.$validator->errors());
-                return jsonResponseWithErrorMessageApi($validator->errors(),409);
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
             }
             return $this->ProfileDetailsApiService->storeFollowUserService($request);
         }catch(Exception $e)
@@ -306,7 +306,7 @@ class ProfileDetailsApiController extends Controller
             if($validator->fails())
             {
                 log::error('Remove follower function validation error: '.$validator->errors());
-                return jsonResponseWithErrorMessageApi($validator->errors(),409);
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
             }
             return $this->ProfileDetailsApiService->removeFollower($request);
         }catch(Exception $e)

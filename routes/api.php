@@ -18,6 +18,7 @@ use App\Http\Controllers\APIs\ProfileDetailsApiController;
 use App\Http\Controllers\APIs\ManageGroupsApiController;
 use App\Http\Controllers\APIs\ManageCommunitiesApiController;
 
+use App\Http\Controllers\APIs\TimeLineController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -144,6 +145,13 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::get('/fetch-notification-settings',[ProfileDetailsApiController::class, 'fetchNotificationSetting']);
             Route::post('/update-notification-settings',[ProfileDetailsApiController::class, 'updateNotificationSetting']);
             
+            // ===============================( Timeline's )=============================== //
+            Route::post('/create-timeline',[TimeLineController::class, 'createTimeLine']);
+            Route::get('/list-of-abilities',[TimeLineController::class, 'listOfAbilities']);
+
+            
+
+        
         });
     });
 });

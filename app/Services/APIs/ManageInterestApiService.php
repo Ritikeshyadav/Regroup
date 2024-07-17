@@ -55,7 +55,7 @@ class ManageInterestApiService
             ]);
             if($validator->fails())
             {
-                return jsonResponseWithErrorMessageApi($validator->errors(), 422);   
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(), 403);   
             }
 
             $interestArray = json_decode($request['manage_interest_xid']);

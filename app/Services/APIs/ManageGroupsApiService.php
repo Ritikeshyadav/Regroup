@@ -67,7 +67,7 @@ class ManageGroupsApiService
             ]);
 
             if ($validator->fails()) {
-                return jsonResponseWithErrorMessageApi($validator->errors(), 422);
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(), 403);
             }
             foreach (json_decode($request['manage_group_xid']) as $group) {
                 if (IamPrincipalManageGroupLink::where(['iam_principal_xid' => (int) $iamprincipal_id, 'manage_group_xid' => $group])->doesntExist()) {
