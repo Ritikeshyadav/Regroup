@@ -138,7 +138,7 @@ class ProfileDetailsApiService
                 // remove profile_image key from request array
                 $newArray = \Illuminate\Support\Arr::except($request->all(), ['profile_image']);
             }
-            
+
             $interestArray = json_decode($request->interest);
             if($interestArray)
             {
@@ -211,7 +211,8 @@ class ProfileDetailsApiService
             $interestName = [];
             if ($data->interestsLink != null) {
                 foreach ($data->interestsLink as $interests) {
-                    array_push($interestName, $interests->interest->name);
+                    $interestName[] = ['id'=>$interests->interest->id,'name'=>$interests->interest->name];
+                    // array_push($interestName, $interests->interest->name);
                 }
                 $data->interestName = $interestName;
             }
