@@ -77,14 +77,26 @@ class ProfileDetailsApiController extends Controller
     public function updateProfile(Request $request)
     {
         try {
-            $token = readHeaderToken();
-            if ($token) {
-                $iamprincipal_id = $token['sub'];
-                // return $this->ProfileDetailsApiService->updateProfileService($iamprincipal_id, $request);
-                return $this->ProfileDetailsApiService->updateBothProfileService($iamprincipal_id, $request);
-            } else {
-                return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+            $validator = Validator::make($request->all(), [
+                'email_address' => 'required|email|unique:iam_principal,email_address,' . auth()->user()->id,
+                'full_name' => 'required',
+                'profile_image' => 'mimes:jpeg,jpg,png,gif|max:2048',
+                'user_name' => 'required',
+                'date_of_birth' => 'required',
+                'gender' => 'required',
+                'interest.*' => 'required|numeric',
+                'about' => 'required',
+                'position' => 'required',
+                'training_scores' => 'required',
+                'height' => 'required',
+                'weight' => 'required',
+                'batting_average' => 'required',
+                'address_line1' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return jsonResponseWithErrorMessageApi($validator->errors(), 422);
             }
+            return $this->ProfileDetailsApiService->updateBothProfileService(auth()->user()->id, $request);
         } catch (Exception $ex) {
             Log::error('update profile function failed: ' . $ex->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);

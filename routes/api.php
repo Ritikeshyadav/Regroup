@@ -115,6 +115,7 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             //========================( Manage Interest API'S)=======================================//
             Route::get('/fetch-interests', [ManageInterestApiController::class, 'fetchManageInterests']);
             Route::post('/select-interests', [ManageInterestApiController::class, 'storeSelectedInterests']);
+            Route::post('/remove-interests', [ManageInterestApiController::class, 'removeInterest']);
 
             //========================( Manage Groups API'S)=======================================//
             Route::get('/fetch-groups', [ManageGroupsApiController::class, 'fetchManageGroup']);
