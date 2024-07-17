@@ -239,10 +239,10 @@ class ProfileDetailsApiController extends Controller
      * Created At : 12 July 2024
      * Use : To fetch blocked profile
      */
-    public function fetchBlockedProfile()
+    public function fetchBlockedProfile(Request $request)
     {
         try{
-            return $this->ProfileDetailsApiService->fetchBlockedProfileService();
+            return $this->ProfileDetailsApiService->fetchBlockedProfileService($request);
         }catch(Exception $e)
         {
             Log::error('Fetch blocked profile function failed: '.$e->getMessage());
