@@ -39,7 +39,7 @@ class ManageInterestApiController extends Controller
             ]);
             if($validator->fails())
             {
-                return jsonResponseWithErrorMessageApi($validator->errors(), 422);   
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(), 403);   
             }
             return $this->manageInterestApiService->StoreUserSelectedInterest($request->all(), auth()->user()->id);
         } catch (Exception $e) {

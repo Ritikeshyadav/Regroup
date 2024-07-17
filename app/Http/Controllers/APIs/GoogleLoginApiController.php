@@ -111,7 +111,7 @@ class GoogleLoginApiController extends Controller
             $playerId = $request->one_signal_player_id;
 
             $isExistIamPrincipalData = IamPrincipal::where(['email_address' => $userData['email']])->first();
-
+// dd($isExistIamPrincipalData);
             if ($isExistIamPrincipalData) {
                 $principal_type_xid = $isExistIamPrincipalData->principal_type_xid;
                 // return jsonResponseWithSuccessMessage(__('auth.email_already_in_use'));
