@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Support\Facades\Hash;
+use App\Services\APIs\ManageInterestApiService;
 
 class ProfileDetailsApiService
 {
@@ -30,13 +31,14 @@ class ProfileDetailsApiService
 
             $profileData = IamPrincipal::updateOrCreate(
                 ['id' => $iamprincipal_id],
-                ['full_name' => $request->full_name,
-                 'user_name' => $request->username,
-                 'date_of_birth' => $request->date_of_birth,
-                 'gender' => $request->gender,
-                 'address_line1' => $request->location,
-                 'profile_photo' => $profilePath,
-                 'is_profile_updated'=>1
+                [
+                    'full_name' => $request->full_name,
+                    'user_name' => $request->username,
+                    'date_of_birth' => $request->date_of_birth,
+                    'gender' => $request->gender,
+                    'address_line1' => $request->location,
+                    'profile_photo' => $profilePath,
+                    'is_profile_updated' => 1
                 ]
             );
             DB::commit();
@@ -120,16 +122,7 @@ class ProfileDetailsApiService
     {
         try {
             DB::beginTransaction();
-            $validator = Validator::make($request->all(), [
-                'email_address' => 'required|email|unique:iam_principal,email_address,'.$iamprincipal_id,
-                'profile_image' => 'mimes:jpeg,jpg,png,gif|max:2048',
-            ]);
-
-            $userData = IamPrincipal::select('id','profile_photo')->where('id',$iamprincipal_id)->first();
-
-            if ($validator->fails()) {
-                return jsonResponseWithErrorMessageApi($validator->errors()->all(), 403);
-            }
+            $userData = IamPrincipal::select('id', 'profile_photo')->where('id', $iamprincipal_id)->first();
 
             if (isset($request->profile_image)) {
                 $image = $request->profile_image;
@@ -138,16 +131,26 @@ class ProfileDetailsApiService
                 $image = null;
                 $image_db = $userData->profile_photo;
             }
-            if($request->has('profile_image'))
-            {
+            if ($request->has('profile_image')) {
                 $img = saveSingleImageWithoutCrop($request->file('profile_image'), 'profile_image', $image_db);
                 $request['profile_photo'] = $img;
 
                 // remove profile_image key from request array
-                $newArray = \Illuminate\Support\Arr::except($request->all(),['profile_image']);
+                $newArray = \Illuminate\Support\Arr::except($request->all(), ['profile_image']);
             }
 
-            $data = IamPrincipal::where('id',$iamprincipal_id)->update($newArray ?? $request->all());
+            $interestArray = json_decode($request->interest);
+            if ($interestArray) {
+                $addInterestArray = (new ManageInterestApiService)->removeInterest($interestArray);
+                if ($addInterestArray) {
+                    $emptyData['other_interest'] = null;
+                    (new ManageInterestApiService)->storeInterest($addInterestArray, $emptyData);
+                }
+                // remove profile_image key from request array
+                $newArray = \Illuminate\Support\Arr::except($request->all(), ['interest']);
+            }
+
+            $data = IamPrincipal::where('id', $iamprincipal_id)->update($newArray ?? $request->all());
             DB::commit();
             $responseData['profile'] = $data;
             return jsonResponseWithSuccessMessageApi(__('success.save_data'), $responseData, 201);
@@ -202,13 +205,12 @@ class ProfileDetailsApiService
     public function fetchProfileService($iamprincipal_id)
     {
         try {
-            $data = IamPrincipal::with('interestsLink.interest')->where('id',$iamprincipal_id)->first();
+            $data = IamPrincipal::with('interestsLink.interest')->where('id', $iamprincipal_id)->first();
             $interestName = [];
-            if($data->interestsLink != null)
-            {
-                foreach($data->interestsLink as $interests)
-                {
-                    array_push($interestName,$interests->interest->name);
+            if ($data->interestsLink != null) {
+                foreach ($data->interestsLink as $interests) {
+                    $interestName[] = ['id' => $interests->interest->id, 'name' => $interests->interest->name];
+                    // array_push($interestName, $interests->interest->name);
                 }
                 $data->interestName = $interestName;
             }
@@ -229,7 +231,7 @@ class ProfileDetailsApiService
                 'follows' => $this->fetchFollowers($iamprincipal_id),
             ];
 
-            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $formatData,200);
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $formatData, 200);
         } catch (Exception $e) {
             Log::error('Fecth profile service function failes: ' . $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
@@ -243,14 +245,13 @@ class ProfileDetailsApiService
      */
     public function fetchFollowers($iamprincipal_id)
     {
-        try{
-            $data['following'] = IamPrincipalFollowers::where('iam_principal_xid',$iamprincipal_id)->count();
-            $data['followers'] = IamPrincipalFollowers::where('following_iam_principal_xid',$iamprincipal_id)->count();
+        try {
+            $data['following'] = IamPrincipalFollowers::where('iam_principal_xid', $iamprincipal_id)->count();
+            $data['followers'] = IamPrincipalFollowers::where('following_iam_principal_xid', $iamprincipal_id)->count();
             return $data;
-        }catch(Exception $e)
-        {
-            Log::error('Fetch follower service function failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        } catch (Exception $e) {
+            Log::error('Fetch follower service function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -261,15 +262,14 @@ class ProfileDetailsApiService
      */
     public function fetchNotificationStatusService($iam_principal_id)
     {
-        try{
-            $notificationStatus = IamPrincipal::select('group_notification','community_notification','follower_notification','new_follower_notification','direct_message_notification')
-                ->where('id',$iam_principal_id)
+        try {
+            $notificationStatus = IamPrincipal::select('group_notification', 'community_notification', 'follower_notification', 'new_follower_notification', 'direct_message_notification')
+                ->where('id', $iam_principal_id)
                 ->first();
-            return jsonResponseWithSuccessMessageApi(__('Success.data_fetched_successfully'),$notificationStatus,200);
-        }catch(Exception $e)
-        {
-            Log::error('Get notification status service failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            return jsonResponseWithSuccessMessageApi(__('Success.data_fetched_successfully'), $notificationStatus, 200);
+        } catch (Exception $e) {
+            Log::error('Get notification status service failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -278,18 +278,17 @@ class ProfileDetailsApiService
      * Created At : 11 July 2024
      * Use : To update notification service 
      */
-    public function updateNotificationStatusService($request,$iam_principal_id)
+    public function updateNotificationStatusService($request, $iam_principal_id)
     {
-        try{
+        try {
             DB::beginTransaction();
-            IamPrincipal::where('id',$iam_principal_id)->update($request->all());
+            IamPrincipal::where('id', $iam_principal_id)->update($request->all());
             DB::commit();
-            return jsonResponseWithSuccessMessageApi(__('success.update_data'),200);
-        }catch(Exception $e)
-        {
+            return jsonResponseWithSuccessMessageApi(__('success.update_data'), 200);
+        } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Update notification service failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            Log::error('Update notification service failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -298,24 +297,22 @@ class ProfileDetailsApiService
      * Created At : 12 July 2024
      * Use : To store block profile
      */
-    public function blockProfileService($request,$iam_principal_id)
+    public function blockProfileService($request, $iam_principal_id)
     {
-        try{
+        try {
             DB::beginTransaction();
             $request['iam_principal_xid'] = $iam_principal_id;
-            if(IamPrincipalBlockedProfile::where(['iam_principal_xid'=>$iam_principal_id,'blocked_iam_principal_xid'=>$request->blocked_iam_principal_xid])->doesntExist())
-            {
+            if (IamPrincipalBlockedProfile::where(['iam_principal_xid' => $iam_principal_id, 'blocked_iam_principal_xid' => $request->blocked_iam_principal_xid])->doesntExist()) {
                 IamPrincipalBlockedProfile::create($request->all());
-            }else{
-                IamPrincipalBlockedProfile::where(['iam_principal_xid'=>$iam_principal_id,'blocked_iam_principal_xid'=>$request->blocked_iam_principal_xid])->delete();
+            } else {
+                IamPrincipalBlockedProfile::where(['iam_principal_xid' => $iam_principal_id, 'blocked_iam_principal_xid' => $request->blocked_iam_principal_xid])->delete();
             }
             DB::commit();
-            return jsonResponseWithSuccessMessageApi(__('success.save_data'),200);
-        }catch(Exception $e)
-        {
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'), 200);
+        } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Block profile service failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            Log::error('Block profile service failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -324,25 +321,41 @@ class ProfileDetailsApiService
      * Created At : 12 July 2024
      * Use : To fetch blocked profile
      */
-    public function fetchBlockedProfileService()
+    public function fetchBlockedProfileService($request)
     {
-        try{
-            $followers = IamPrincipalBlockedProfile::with(['blockedProfile'=>function($query){
-                $query->select('id','user_name','full_name','profile_photo');
-            }])
-            ->select('blocked_iam_principal_xid','iam_principal_xid')
-            ->where('iam_principal_xid',auth()->user()->id)
-            ->get();
-            if($followers == null)
-            {
+        try {
+            $search = $request->search;
+            $followers = IamPrincipalBlockedProfile::whereHas('blockedProfile',
+                function ($query) use ($search) {
+                    $query->when($search != null, function ($q) use ($search) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->where('user_name', 'like', '%' . $search . '%');
+                        $q->orWhere('full_name', 'like', '%' . $search . '%');
+                    }, function ($q) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    });
+                }
+            )
+                ->with(['blockedProfile' => function ($query) use ($search) {
+                    $query->when($search != null, function ($q) use ($search) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->where('user_name', 'like', '%' . $search . '%');
+                        $q->orWhere('full_name', 'like', '%' . $search . '%');
+                    }, function ($q) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    });
+                }])
+                ->select('blocked_iam_principal_xid', 'iam_principal_xid')
+                ->where('iam_principal_xid', auth()->user()->id)
+                ->get();
+            if ($followers == null) {
                 Log::info('Blocked profile data not found.');
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
             }
-            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$followers,200);
-        }catch(Exception $e)
-        {
-            Log::error('Fetch blocked profile service function failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $followers, 200);
+        } catch (Exception $e) {
+            Log::error('Fetch blocked profile service function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -353,42 +366,39 @@ class ProfileDetailsApiService
      */
     public function fetchFollowersService($request)
     {
-        try{
+        try {
             $search = $request->search;
-            $followers = IamPrincipalFollowers::whereHas('follower', function($query) use ($search) {
-                $query->when($search != null, function($q) use ($search) {
+            $followers = IamPrincipalFollowers::whereHas('follower', function ($query) use ($search) {
+                $query->when($search != null, function ($q) use ($search) {
                     $q->select('id', 'user_name', 'full_name', 'profile_photo');
-                    $q->where('user_name', 'like', '%'.$search.'%');
-                    $q->orWhere('full_name', 'like', '%'.$search.'%');
-                }, function($q) {
+                    $q->where('user_name', 'like', '%' . $search . '%');
+                    $q->orWhere('full_name', 'like', '%' . $search . '%');
+                }, function ($q) {
                     $q->select('id', 'user_name', 'full_name', 'profile_photo');
                 });
             })
-            ->with(['follower' => function($query) use ($search) {
-                $query->when($search != null, function($q) use ($search) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
-                    $q->where('user_name', 'like', '%'.$search.'%');
-                    $q->orWhere('full_name', 'like', '%'.$search.'%');
-                }, function($q) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
-                });
-            }])
-            ->where('following_iam_principal_xid', auth()->user()->id)
-            ->select('following_iam_principal_xid', 'iam_principal_xid')
-            ->get();
+                ->with(['follower' => function ($query) use ($search) {
+                    $query->when($search != null, function ($q) use ($search) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->where('user_name', 'like', '%' . $search . '%');
+                        $q->orWhere('full_name', 'like', '%' . $search . '%');
+                    }, function ($q) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    });
+                }])
+                ->where('following_iam_principal_xid', auth()->user()->id)
+                ->whereNotIn('iam_principal_xid',IamPrincipalBlockedProfile::where('iam_principal_xid',auth()->user()->id)->pluck('blocked_iam_principal_xid'))
+                ->select('following_iam_principal_xid', 'iam_principal_xid')
+                ->get();
 
-            if($followers == null)
-            {
+            if ($followers == null) {
                 Log::info('follower data not found.');
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
             }
-            // return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$followers,200);
-            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$followers,200);
-
-        }catch(Exception $e)
-        {
-            Log::error('Fetch follower service function failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $followers, 201);
+        } catch (Exception $e) {
+            Log::error('Fetch follower service function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -399,39 +409,37 @@ class ProfileDetailsApiService
      */
     public function fetchFollowingsService($request)
     {
-        try{
+        try {
             $search = $request->search;
-            $following = IamPrincipalFollowers::whereHas('following',function($query) use ($search){
-                $query->when($search != null,function($q) use ($search){
-                    $q->select('id','user_name','full_name','profile_photo');
-                    $q->where('user_name','like','%'.$search.'%');
-                    $q->orWhere('full_name','like','%'.$search.'%');
-                },function($q){
-                    $q->select('id','user_name','full_name','profile_photo');
+            $following = IamPrincipalFollowers::whereHas('following', function ($query) use ($search) {
+                $query->when($search != null, function ($q) use ($search) {
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->where('user_name', 'like', '%' . $search . '%');
+                    $q->orWhere('full_name', 'like', '%' . $search . '%');
+                }, function ($q) {
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
                 });
             })
-            ->with(['following'=>function($query) use ($search){
-                $query->when($search != null,function($q) use ($search){
-                    $q->select('id','user_name','full_name','profile_photo');
-                    $q->where('user_name','like','%'.$search.'%');
-                    $q->orWhere('full_name','like','%'.$search.'%');
-                },function($q){
-                    $q->select('id','user_name','full_name','profile_photo');
-                });
-            }])
-            ->select('following_iam_principal_xid','iam_principal_xid')
-            ->where('iam_principal_xid',auth()->user()->id)
-            ->get();
-            if($following == null)
-            {
+                ->with(['following' => function ($query) use ($search) {
+                    $query->when($search != null, function ($q) use ($search) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->where('user_name', 'like', '%' . $search . '%');
+                        $q->orWhere('full_name', 'like', '%' . $search . '%');
+                    }, function ($q) {
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    });
+                }])
+                ->select('following_iam_principal_xid', 'iam_principal_xid')
+                ->where('iam_principal_xid', auth()->user()->id)
+                ->get();
+            if ($following == null) {
                 Log::info('following data not found.');
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
             }
-            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$following,200);
-        }catch(Exception $e)
-        {
-            Log::error('Fetch following service function failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $following, 200);
+        } catch (Exception $e) {
+            Log::error('Fetch following service function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -442,22 +450,59 @@ class ProfileDetailsApiService
      */
     public function storeFollowUserService($request)
     {
-        try{
+        try {
             DB::beginTransaction();
             $iam_principal_id = auth()->user()->id;
             $request['iam_principal_xid'] = $iam_principal_id;
-            if(IamPrincipalFollowers::where(['iam_principal_xid'=>$iam_principal_id,'following_iam_principal_xid'=>$request->following_iam_principal_xid])->doesntExist())
-            {
+            if (IamPrincipalFollowers::where(['iam_principal_xid' => $iam_principal_id, 'following_iam_principal_xid' => $request->following_iam_principal_xid])->doesntExist()) {
                 IamPrincipalFollowers::create($request->all());
-            }else{
-                IamPrincipalFollowers::where(['iam_principal_xid'=>$iam_principal_id,'following_iam_principal_xid'=>$request->following_iam_principal_xid])->delete();
+            } else {
+                IamPrincipalFollowers::where(['iam_principal_xid' => $iam_principal_id, 'following_iam_principal_xid' => $request->following_iam_principal_xid])->delete();
             }
             DB::commit();
-            return jsonResponseWithSuccessMessageApi(__('success.save_data'),200);
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'), 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Store follow user service failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 17 July 2024
+     * Use : To remove followes
+     */
+    public function removeFollower($request)
+    {
+        try {
+            DB::beginTransaction();
+            IamPrincipalFollowers::where(['iam_principal_xid' => $request->iam_principal_xid, 'following_iam_principal_xid' => auth()->user()->id])->delete();
+            DB::commit();
+            return jsonResponseWithSuccessMessageApi(__('success.update_data'), [], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Remove follower service failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 17 July 2024
+     * Use : To delete account
+     */
+    public function deleteMyAccount()
+    {
+        try{
+            DB::beginTransaction();
+            IamPrincipal::where('id',auth()->user()->id)->update(['is_deleted'=>true]);
+            DB::commit();
+            return jsonResponseWithSuccessMessageApi('account deleted successfully',[],200);
         }catch(Exception $e)
         {
             DB::rollBack();
-            Log::error('Store follow user service failed: '.$e->getMessage());
+            Log::error('Delete my account service failed: '.$e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
@@ -465,20 +510,20 @@ class ProfileDetailsApiService
     /**
      * Created By : Ritikesh Yadav
      * Created At : 16 July 2024
-     * Use : To remove followes
+     * Use : To make account private (account visibility)
      */
-    public function removeFollower($request)
+    public function accountVisibility($request)
     {
         try{
             DB::beginTransaction();
-            IamPrincipalFollowers::where(['iam_principal_xid'=>$request->iam_principal_xid,'following_iam_principal_xid'=>auth()->user()->id])->delete();
+            IamPrincipal::where('id',auth()->user()->id)->update($request->all());
             DB::commit();
-            return jsonResponseWithSuccessMessage('Follower removed');
-
+            $status = $request->is_account_visibility == 0 ? '(Private)':'(Public)';
+            return jsonResponseWithSuccessMessageApi('account visibility status changed to '.$status,[],200);
         }catch(Exception $e)
         {
             DB::rollBack();
-            Log::error('Remove follower service failed: '.$e->getMessage());
+            Log::error('account visibility service failed: '.$e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }

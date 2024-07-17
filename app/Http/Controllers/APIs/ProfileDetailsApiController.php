@@ -77,14 +77,26 @@ class ProfileDetailsApiController extends Controller
     public function updateProfile(Request $request)
     {
         try {
-            $token = readHeaderToken();
-            if ($token) {
-                $iamprincipal_id = $token['sub'];
-                // return $this->ProfileDetailsApiService->updateProfileService($iamprincipal_id, $request);
-                return $this->ProfileDetailsApiService->updateBothProfileService($iamprincipal_id, $request);
-            } else {
-                return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+            $validator = Validator::make($request->all(), [
+                'email_address' => 'required|email|unique:iam_principal,email_address,' . auth()->user()->id,
+                'full_name' => 'required',
+                'profile_image' => 'mimes:jpeg,jpg,png,gif|max:2048',
+                'user_name' => 'required',
+                'date_of_birth' => 'required',
+                'gender' => 'required',
+                'interest.*' => 'required|numeric',
+                'about' => 'required',
+                'position' => 'required',
+                'training_scores' => 'required',
+                'height' => 'required',
+                'weight' => 'required',
+                'batting_average' => 'required',
+                'address_line1' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(), 403);
             }
+            return $this->ProfileDetailsApiService->updateBothProfileService(auth()->user()->id, $request);
         } catch (Exception $ex) {
             Log::error('update profile function failed: ' . $ex->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
@@ -227,10 +239,10 @@ class ProfileDetailsApiController extends Controller
      * Created At : 12 July 2024
      * Use : To fetch blocked profile
      */
-    public function fetchBlockedProfile()
+    public function fetchBlockedProfile(Request $request)
     {
         try{
-            return $this->ProfileDetailsApiService->fetchBlockedProfileService();
+            return $this->ProfileDetailsApiService->fetchBlockedProfileService($request);
         }catch(Exception $e)
         {
             Log::error('Fetch blocked profile function failed: '.$e->getMessage());
@@ -247,7 +259,7 @@ class ProfileDetailsApiController extends Controller
     {
         try{
             return $this->ProfileDetailsApiService->fetchFollowersService($request);
-        }catch(Exception $e)
+        }catch(Exception $e)    
         {
             Log::error('Fetch follower function failed: '.$e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
@@ -296,7 +308,7 @@ class ProfileDetailsApiController extends Controller
 
     /**
      * Created By : Ritikesh Yadav
-     * Created At : 12 July 2024
+     * Created At : 17 July 2024
      * Use : To remove follower
      */
     public function removeFollower(Request $request)
@@ -305,13 +317,52 @@ class ProfileDetailsApiController extends Controller
             $validator = Validator::make($request->all(),['iam_principal_xid'=>'required|exists:iam_principal_followers,iam_principal_xid']);
             if($validator->fails())
             {
-                log::error('Remove follower function validation error: '.$validator->errors());
+                log::info('Remove follower function validation error: '.$validator->errors());
                 return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
             }
             return $this->ProfileDetailsApiService->removeFollower($request);
         }catch(Exception $e)
         {
-            
+            Log::error('Remove follower function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 17 July 2024
+     * Use : To delete account
+     */
+    public function deleteMyAccount()
+    {
+        try{
+            return $this->ProfileDetailsApiService->deleteMyAccount();
+        }catch(Exception $e)
+        {
+            Log::error('Delete my account function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 17 July 2024
+     * Use : To make account private (account visibility)
+     */
+    public function accountVisibility(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(),['is_account_visibility'=>'required']);
+            if($validator->fails())
+            {
+                Log::info('Account visibility validation error: '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
+            }
+            return $this->ProfileDetailsApiService->accountVisibility($request);
+        }catch(Exception $e)
+        {
+            Log::error('Account visibility function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
 }
