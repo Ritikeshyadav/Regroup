@@ -8,6 +8,7 @@ use App\Models\ManageInterest;
 use App\Services\APIs\ManageInterestApiService;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Validator;
 
 class ManageInterestApiController extends Controller
 {
@@ -31,12 +32,25 @@ class ManageInterestApiController extends Controller
 
     public function storeSelectedInterests(Request $request)
     {
-        try {
-            $token = readHeaderToken();
-            return $token ? $this->manageInterestApiService->StoreUserSelectedInterest($request->all(), $token['sub']) : jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+        try {            
+            $validator = Validator::make($request->all(),[
+                'manage_interest_xid.*' => 'required|exists:manage_interests,id',
+                'other_interest' => 'nullable',
+            ]);
+            if($validator->fails())
+            {
+                return jsonResponseWithErrorMessageApi($validator->errors(), 422);   
+            }
+            return $this->manageInterestApiService->StoreUserSelectedInterest($request->all(), auth()->user()->id);
         } catch (Exception $e) {
             Log::error('store user selected interest function failed: ' . $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
+    }
+
+    public function removeInterest(Request $request)
+    {
+        // return json_decode($request->newArray);
+        return $this->manageInterestApiService->removeInterest(json_decode($request->newArray));
     }
 }

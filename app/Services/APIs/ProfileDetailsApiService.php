@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Support\Facades\Hash;
+use App\Services\APIs\ManageInterestApiService;
 
 class ProfileDetailsApiService
 {
@@ -120,17 +121,8 @@ class ProfileDetailsApiService
     public function updateBothProfileService($iamprincipal_id, $request)
     {
         try {
-            DB::beginTransaction();
-            $validator = Validator::make($request->all(), [
-                'email_address' => 'required|email|unique:iam_principal,email_address,' . $iamprincipal_id,
-                'profile_image' => 'mimes:jpeg,jpg,png,gif|max:2048',
-            ]);
-
+            DB::beginTransaction();            
             $userData = IamPrincipal::select('id', 'profile_photo')->where('id', $iamprincipal_id)->first();
-
-            if ($validator->fails()) {
-                return jsonResponseWithErrorMessageApi($validator->errors(), 422);
-            }
 
             if (isset($request->profile_image)) {
                 $image = $request->profile_image;
@@ -145,6 +137,19 @@ class ProfileDetailsApiService
 
                 // remove profile_image key from request array
                 $newArray = \Illuminate\Support\Arr::except($request->all(), ['profile_image']);
+            }
+            
+            $interestArray = json_decode($request->interest);
+            if($interestArray)
+            {
+                $addInterestArray = (new ManageInterestApiService)->removeInterest($interestArray);
+                if($addInterestArray)
+                {
+                    $emptyData['other_interest'] = null;
+                    (new ManageInterestApiService)->storeInterest($addInterestArray,$emptyData);
+                }
+                // remove profile_image key from request array
+                $newArray = \Illuminate\Support\Arr::except($request->all(), ['interest']);
             }
 
             $data = IamPrincipal::where('id', $iamprincipal_id)->update($newArray ?? $request->all());
