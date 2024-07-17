@@ -308,7 +308,7 @@ class ProfileDetailsApiController extends Controller
 
     /**
      * Created By : Ritikesh Yadav
-     * Created At : 12 July 2024
+     * Created At : 17 July 2024
      * Use : To remove follower
      */
     public function removeFollower(Request $request)
@@ -324,6 +324,44 @@ class ProfileDetailsApiController extends Controller
         }catch(Exception $e)
         {
             Log::error('Remove follower function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 17 July 2024
+     * Use : To delete account
+     */
+    public function deleteMyAccount()
+    {
+        try{
+            return $this->ProfileDetailsApiService->deleteMyAccount();
+        }catch(Exception $e)
+        {
+            Log::error('Delete my account function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 17 July 2024
+     * Use : To make account private (account visibility)
+     */
+    public function accountVisibility(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(),['is_account_visibility'=>'required']);
+            if($validator->fails())
+            {
+                Log::info('Account visibility validation error: '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors(),409);
+            }
+            return $this->ProfileDetailsApiService->accountVisibility($request);
+        }catch(Exception $e)
+        {
+            Log::error('Account visibility function failed: '.$e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
