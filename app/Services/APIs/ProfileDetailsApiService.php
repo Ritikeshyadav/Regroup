@@ -470,7 +470,7 @@ class ProfileDetailsApiService
 
     /**
      * Created By : Ritikesh Yadav
-     * Created At : 16 July 2024
+     * Created At : 17 July 2024
      * Use : To remove followes
      */
     public function removeFollower($request)
@@ -484,6 +484,47 @@ class ProfileDetailsApiService
             DB::rollBack();
             Log::error('Remove follower service failed: ' . $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 17 July 2024
+     * Use : To delete account
+     */
+    public function deleteMyAccount()
+    {
+        try{
+            DB::beginTransaction();
+            IamPrincipal::where('id',auth()->user()->id)->update(['is_deleted'=>true]);
+            DB::commit();
+            return jsonResponseWithSuccessMessageApi('account deleted successfully',[],200);
+        }catch(Exception $e)
+        {
+            DB::rollBack();
+            Log::error('Delete my account service failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 16 July 2024
+     * Use : To make account private (account visibility)
+     */
+    public function accountVisibility($request)
+    {
+        try{
+            DB::beginTransaction();
+            IamPrincipal::where('id',auth()->user()->id)->update($request->all());
+            DB::commit();
+            $status = $request->is_account_visibility == 0 ? '(Private)':'(Public)';
+            return jsonResponseWithSuccessMessageApi('account visibility status changed to '.$status,[],200);
+        }catch(Exception $e)
+        {
+            DB::rollBack();
+            Log::error('account visibility service failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
 }

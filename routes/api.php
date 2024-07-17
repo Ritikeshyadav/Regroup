@@ -104,6 +104,8 @@ Route::middleware(['BasicAuthApi'])->group(function () {
         Route::post('/block-profile', [ProfileDetailsApiController::class, 'blockProfile']);
         Route::post('/share-profile', [ProfileDetailsApiController::class, 'shareProfile']);
         Route::get('/fetch-blocked-profile', [ProfileDetailsApiController::class, 'fetchBlockedProfile']);
+        Route::get('/delete-my-account', [ProfileDetailsApiController::class, 'deleteMyAccount']);
+        Route::post('/account-visibility', [ProfileDetailsApiController::class, 'accountVisibility']);
 
             // ============================( Follow API's)===================================//
             Route::get('/fetch-followers',[ProfileDetailsApiController::class, 'fetchFollowers']);
