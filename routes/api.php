@@ -52,7 +52,7 @@ Route::middleware(['BasicAuthApi'])->group(function () {
         
         Route::post('/facebook-login', [FacebookLoginApiController::class, 'facebookLogin'])->name('facebook.login');
     });
-    Route::group(['middleware' => ['BasicAuthApi','wdi.jwt.verify',]], function () {
+    Route::group(['middleware' => ['wdi.jwt.verify']], function () {
         Route::prefix('/v1')->group(function () {
 
 
@@ -91,24 +91,25 @@ Route::middleware(['BasicAuthApi'])->group(function () {
 
 
 
-            //======================( Manage Activities API'S  )==============================//
-            Route::post('/add-activities', [ManageActivitiesApiController::class, 'addManageActivities']);
-            Route::get('/fetch-activities', [ManageActivitiesApiController::class, 'fetchManageActivities']);
+        //======================( Manage Activities API'S  )==============================//
+        Route::post('/add-activities', [ManageActivitiesApiController::class, 'addManageActivities']);
+        Route::get('/fetch-activities', [ManageActivitiesApiController::class, 'fetchManageActivities']);
 
 
-            //======================( Profile Details API'S  )==============================//
-            // Route::post('/add-profile', [ProfileDetailsApiController::class, 'addProfile']);
-            Route::get('/fetch-role', [ProfileDetailsApiController::class, 'fetchRole']);
-            Route::post('/update-profile', [ProfileDetailsApiController::class, 'updateProfile']);
-            Route::post('/delete-profile', [ProfileDetailsApiController::class, 'deleteProfile']);
-            Route::post('/block-profile', [ProfileDetailsApiController::class, 'blockProfile']);
-            Route::post('/share-profile', [ProfileDetailsApiController::class, 'shareProfile']);
-            Route::get('/fetch-blocked-profile', [ProfileDetailsApiController::class, 'fetchBlockedProfile']);
+        //======================( Profile Details API'S  )==============================//
+        // Route::post('/add-profile', [ProfileDetailsApiController::class, 'addProfile']);
+        Route::get('/fetch-role', [ProfileDetailsApiController::class, 'fetchRole']);
+        Route::post('/update-profile', [ProfileDetailsApiController::class, 'updateProfile']);
+        Route::post('/delete-profile', [ProfileDetailsApiController::class, 'deleteProfile']);
+        Route::post('/block-profile', [ProfileDetailsApiController::class, 'blockProfile']);
+        Route::post('/share-profile', [ProfileDetailsApiController::class, 'shareProfile']);
+        Route::get('/fetch-blocked-profile', [ProfileDetailsApiController::class, 'fetchBlockedProfile']);
 
             // ============================( Follow API's)===================================//
             Route::get('/fetch-followers',[ProfileDetailsApiController::class, 'fetchFollowers']);
             Route::get('/fetch-following',[ProfileDetailsApiController::class, 'fetchFollowings']);
             Route::post('/follow-user',[ProfileDetailsApiController::class, 'followUsers']);
+            Route::post('/remove-follower',[ProfileDetailsApiController::class, 'removeFollower']);
 
 
             //========================( Manage Interest API'S)=======================================//

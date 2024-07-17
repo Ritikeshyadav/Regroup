@@ -247,7 +247,7 @@ class ProfileDetailsApiController extends Controller
     {
         try{
             return $this->ProfileDetailsApiService->fetchFollowersService($request);
-        }catch(Exception $e)
+        }catch(Exception $e)    
         {
             Log::error('Fetch follower function failed: '.$e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
@@ -305,13 +305,14 @@ class ProfileDetailsApiController extends Controller
             $validator = Validator::make($request->all(),['iam_principal_xid'=>'required|exists:iam_principal_followers,iam_principal_xid']);
             if($validator->fails())
             {
-                log::error('Remove follower function validation error: '.$validator->errors());
+                log::info('Remove follower function validation error: '.$validator->errors());
                 return jsonResponseWithErrorMessageApi($validator->errors(),409);
             }
             return $this->ProfileDetailsApiService->removeFollower($request);
         }catch(Exception $e)
         {
-            
+            Log::error('Remove follower function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
 }
