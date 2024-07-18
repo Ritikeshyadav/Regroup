@@ -82,17 +82,17 @@ class ManageActivitiesApiController extends Controller
      */
     public function fetchManageActivities(Request $request)
     {
-        try {
-            $token = readHeaderToken();
-            if ($token) {
-                $iamprincipal_id = $token['sub'];
-                return $this->ManageActivitiesApiService->fetchActivitiesService($iamprincipal_id, $request);
-            } else {
-                return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
-            }
-        } catch (Exception $ex) {
-            Log::error('fetch manage activities function failed: ' . $ex->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
-        }
+        // try {
+        //     $token = readHeaderToken();
+        //     if ($token) {
+        //         $iamprincipal_id = $token['sub'];
+        //         return $this->ManageActivitiesApiService->fetchActivitiesService($iamprincipal_id, $request);
+        //     } else {
+        //         return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+        //     }
+        // } catch (Exception $ex) {
+        //     Log::error('fetch manage activities function failed: ' . $ex->getMessage());
+        //     return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        // }
     }
 }

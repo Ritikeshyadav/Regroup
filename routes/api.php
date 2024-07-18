@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\APIs\AccountSessionController;
 use App\Http\Controllers\APIs\AppleLoginApiController;
 use App\Http\Controllers\APIs\AuthApiController;
 use App\Http\Controllers\APIs\BusinessUserProfileController;
@@ -152,6 +153,11 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             // ===============================( Timeline's )=============================== //
             Route::post('/create-timeline',[TimeLineController::class, 'createTimeLine']);
             Route::get('/list-of-abilities',[TimeLineController::class, 'listOfAbilities']);
+
+             // ===============================( Account Session's )=============================== //
+             Route::post('/store-account-session',[AccountSessionController::class, 'storeAccountSession']);
+            //  Route::get('/list-of-abilities',[AccountSessionController::class, 'listOfAbilities']);
+ 
 
             
 
