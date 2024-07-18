@@ -80,15 +80,15 @@ class ManageActivitiesApiService
                 return jsonResponseWithErrorMessageApi(__('space_xid not found'), 422);
             }
 
-            $activities = ManageActivities::Create([
-                'iam_principal_xid' => $iamprincipal_id,
-                'space_folder_list_task_link_xid' => $space_folder_list_task_link_xid->id,
-                'title' => $request->title,
-                'date_time' => $request->date_time,
-            ]);
+            // $activities = ManageActivities::Create([
+            //     'iam_principal_xid' => $iamprincipal_id,
+            //     'space_folder_list_task_link_xid' => $space_folder_list_task_link_xid->id,
+            //     'title' => $request->title,
+            //     'date_time' => $request->date_time,
+            // ]);
             DB::commit();
-            $responseData['activities'] = $activities;
-            return jsonResponseWithSuccessMessageApi(__('success.save_data'), $responseData, 201);
+            // $responseData['activities'] = $activities;
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'), [], 201);
         } catch (Exception $ex) {
             DB::rollBack();
             Log::error('add manage activities service function failed: ' . $ex->getMessage());

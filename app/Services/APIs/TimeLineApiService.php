@@ -19,12 +19,6 @@ class TimeLineApiService
 {
 
 
-
-    /**
-     * Created By : Hritik D
-     * Created At : 09 July 2024
-     * Use : To add Tell us About Yourself Of Bussines User- Service
-     */
     public function createTimelineOfIndividual($request)
     {
         try {
@@ -61,11 +55,7 @@ class TimeLineApiService
     }
 
 
-    /**
-     * Created By : Ritikesh Yadav
-     * Created At : 10 July 2024
-     * Use : To fetch business profile service 
-     */
+ 
     public function getListOfAbilitiesService()
     {
         try {
