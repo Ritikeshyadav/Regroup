@@ -161,6 +161,10 @@ class AuthApiService
                 if (!$user) {
                     return jsonResponseWithErrorMessageApi(__('auth.user_not_found'), 403);
                 }
+                if($user && $user->is_deleted == 1)
+                {
+                    return jsonResponseWithSuccessMessageApi('your account has been deleted',202);
+                }
                 if ($user && Hash::check($request->password, $user->password_hash)) {
                     $token = JWTAuth::fromUser($user);
                     $responseData['access-token'] = $token;

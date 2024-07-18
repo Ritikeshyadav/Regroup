@@ -55,7 +55,7 @@ class GoogleLoginApiController extends Controller
             $principal_type_xid = 1; // for user
             $user_data_array = [
                 'principal_type_xid' => $principal_type_xid,
-                'principal_source_xid' => 3 ,//Google,
+                'principal_source_xid' => 3, //Google,
                 'google_id' => $userData['id'],
                 'email_address' => $userData['email'],
                 'last_login_datetime' =>  Carbon::now(),
@@ -77,7 +77,7 @@ class GoogleLoginApiController extends Controller
     }
 
 
- /**
+    /**
      * Crerated By: Hritik D 
      * Created  at : 09 July 2024
      * Use: To Sign in WIth Google
@@ -103,6 +103,10 @@ class GoogleLoginApiController extends Controller
             // if($userData && $userData['error'] && $userData['error']['code'] == 401){
             //     return jsonResponseWithErrorMessageApi($userData['error']['message'],500);
             // }
+            $isExistIamPrincipalData = IamPrincipal::where(['email_address' => $userData['email']])->first();
+            if ($isExistIamPrincipalData  && $isExistIamPrincipalData->is_deleted == 1) {
+                return jsonResponseWithSuccessMessageApi('your account has been deleted', 202);
+            }
 
             $isDeactivatedAccountFound = IamPrincipal::where(['email_address' => $userData['email'], 'is_active' => 0])->first();
             if ($isDeactivatedAccountFound) {
@@ -110,8 +114,6 @@ class GoogleLoginApiController extends Controller
             }
             $playerId = $request->one_signal_player_id;
 
-            $isExistIamPrincipalData = IamPrincipal::where(['email_address' => $userData['email']])->first();
-// dd($isExistIamPrincipalData);
             if ($isExistIamPrincipalData) {
                 $principal_type_xid = $isExistIamPrincipalData->principal_type_xid;
                 // return jsonResponseWithSuccessMessage(__('auth.email_already_in_use'));
@@ -148,8 +150,4 @@ class GoogleLoginApiController extends Controller
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
-
-
-
-  
 }
