@@ -103,6 +103,11 @@ class GoogleLoginApiController extends Controller
             // if($userData && $userData['error'] && $userData['error']['code'] == 401){
             //     return jsonResponseWithErrorMessageApi($userData['error']['message'],500);
             // }
+            $isExistIamPrincipalData = IamPrincipal::where(['email_address' => $userData['email']])->first();
+            if($isExistIamPrincipalData  && $isExistIamPrincipalData->is_deleted == 1)
+            {
+                return jsonResponseWithSuccessMessageApi('your account has been deleted',202);
+            }
 
             $isDeactivatedAccountFound = IamPrincipal::where(['email_address' => $userData['email'], 'is_active' => 0])->first();
             if ($isDeactivatedAccountFound) {
@@ -110,7 +115,6 @@ class GoogleLoginApiController extends Controller
             }
             $playerId = $request->one_signal_player_id;
 
-            $isExistIamPrincipalData = IamPrincipal::where(['email_address' => $userData['email']])->first();
 
             if ($isExistIamPrincipalData) {
                 $principal_type_xid = $isExistIamPrincipalData->principal_type_xid;

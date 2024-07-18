@@ -46,7 +46,7 @@ Route::middleware(['BasicAuthApi'])->group(function () {
         Route::post('/resend-otp', [AuthApiController::class, 'resendOtp']);
 
         Route::post('/sign-in-with-google-login', [GoogleLoginApiController::class, 'signInWithGoogle']);
-        Route::post('/apple-login', [AppleLoginApiController::class, 'appleLogin'])->name('apple.login');
+        Route::post('/apple-login', [AppleLoginApiController::class, 'appleLogin'])->name('apple.login'); //not in use
         Route::post('/apple-login-or-registration', [AppleLoginApiController::class, 'appleRegistration'])->name('apple-login-or-registration');
 
         

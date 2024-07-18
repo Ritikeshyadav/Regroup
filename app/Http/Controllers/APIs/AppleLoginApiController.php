@@ -43,6 +43,12 @@ class AppleLoginApiController extends Controller
                 }
             }
 
+            $isExistIamPrincipalData = IamPrincipal::where(['email_address' => $request->email])->first();
+            if($isExistIamPrincipalData->is_deleted == 1)
+            {
+                return jsonResponseWithSuccessMessageApi('your account has been deleted',202);
+            }
+
             $principal_type_xid = 1; // for user
             $userData = [
                 'principal_source_xid' =>  $request->principal_source_xid,
@@ -101,7 +107,10 @@ class AppleLoginApiController extends Controller
             // $principal_type_xid = 1; // for user
 
             $isExistIamPrincipalData = IamPrincipal::where('apple_id', $request->apple_auth_token)->first();
-
+            if($isExistIamPrincipalData && $isExistIamPrincipalData->is_deleted == 1)
+            {
+                return jsonResponseWithSuccessMessageApi('your account has been deleted',202);
+            }
             if ($isExistIamPrincipalData) {
                 $principal_type_xid = $isExistIamPrincipalData->principal_type_xid;
                 // return jsonResponseWithSuccessMessage(__('auth.email_already_in_use'));
