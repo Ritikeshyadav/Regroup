@@ -12,4 +12,8 @@ class ManageTimelines extends Model
 
     protected $table ='manage_timelines';
     protected $guarded =[];
+
+
+
+    
 }

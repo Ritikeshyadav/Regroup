@@ -2,10 +2,12 @@
 
 namespace App\Services\APIs;
 
+use App\Models\Abilities;
 use App\Models\IamPrincipal;
 use App\Models\IamPrincipalBlockedProfile;
 use App\Models\IamRole;
 use App\Models\IamPrincipalFollowers;
+use App\Models\ManageTimelines;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -198,9 +200,9 @@ class ProfileDetailsApiService
     }
 
     /* 
-        * Created By : Ritikesh Yadav
-        * Created At : 09 July 2024
-        * Use : To fetch profile service
+     * Created By : Ritikesh Yadav
+     * Created At : 09 July 2024
+     * Use : To fetch profile service
      */
     public function fetchProfileService($iamprincipal_id)
     {
@@ -214,7 +216,18 @@ class ProfileDetailsApiService
                 }
                 $data->interestName = $interestName;
             }
-            $formatData = (array)[
+
+            $getTimelines = ManageTimelines::select('id', 'club_name', 'role_name', 'team_name', 'start_date', 'end_date', 'abilities_xids')->where('iam_principal_xid', $iamprincipal_id)->where('is_active', 1)->get();
+
+            //for new release audio image
+            foreach ($getTimelines as $key => $timeline) {
+
+                $abilityIds = explode(',', $timeline->abilities_xids);
+                $abilities = Abilities::select('id', 'name')->whereIn('id', $abilityIds)->get();
+                $getTimelines[$key]['abilities'] = $abilities;
+            }
+
+            $formatData = (array) [
                 'id' => $data->id,
                 'user_name' => $data->user_name,
                 // 'pin' => $data->pin,
@@ -229,6 +242,7 @@ class ProfileDetailsApiService
                 'weight' => $data->weight,
                 'batting_average' => $data->batting_average,
                 'follows' => $this->fetchFollowers($iamprincipal_id),
+                'timelines' => $getTimelines
             ];
 
             return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $formatData, 200);
@@ -239,9 +253,9 @@ class ProfileDetailsApiService
     }
 
     /* 
-        * Created By : Ritikesh Yadav
-        * Created At : 09 July 2024
-        * Use : To fetch profile service
+     * Created By : Ritikesh Yadav
+     * Created At : 09 July 2024
+     * Use : To fetch profile service
      */
     public function fetchFollowers($iamprincipal_id)
     {
@@ -325,7 +339,8 @@ class ProfileDetailsApiService
     {
         try {
             $search = $request->search;
-            $followers = IamPrincipalBlockedProfile::whereHas('blockedProfile',
+            $followers = IamPrincipalBlockedProfile::whereHas(
+                'blockedProfile',
                 function ($query) use ($search) {
                     $query->when($search != null, function ($q) use ($search) {
                         $q->select('id', 'user_name', 'full_name', 'profile_photo');
@@ -336,15 +351,17 @@ class ProfileDetailsApiService
                     });
                 }
             )
-                ->with(['blockedProfile' => function ($query) use ($search) {
-                    $query->when($search != null, function ($q) use ($search) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
-                        $q->where('user_name', 'like', '%' . $search . '%');
-                        $q->orWhere('full_name', 'like', '%' . $search . '%');
-                    }, function ($q) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
-                    });
-                }])
+                ->with([
+                    'blockedProfile' => function ($query) use ($search) {
+                        $query->when($search != null, function ($q) use ($search) {
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->where('user_name', 'like', '%' . $search . '%');
+                            $q->orWhere('full_name', 'like', '%' . $search . '%');
+                        }, function ($q) {
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        });
+                    }
+                ])
                 ->select('blocked_iam_principal_xid', 'iam_principal_xid')
                 ->where('iam_principal_xid', auth()->user()->id)
                 ->get();
@@ -377,17 +394,19 @@ class ProfileDetailsApiService
                     $q->select('id', 'user_name', 'full_name', 'profile_photo');
                 });
             })
-                ->with(['follower' => function ($query) use ($search) {
-                    $query->when($search != null, function ($q) use ($search) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
-                        $q->where('user_name', 'like', '%' . $search . '%');
-                        $q->orWhere('full_name', 'like', '%' . $search . '%');
-                    }, function ($q) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
-                    });
-                }])
+                ->with([
+                    'follower' => function ($query) use ($search) {
+                        $query->when($search != null, function ($q) use ($search) {
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->where('user_name', 'like', '%' . $search . '%');
+                            $q->orWhere('full_name', 'like', '%' . $search . '%');
+                        }, function ($q) {
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        });
+                    }
+                ])
                 ->where('following_iam_principal_xid', auth()->user()->id)
-                ->whereNotIn('iam_principal_xid',IamPrincipalBlockedProfile::where('iam_principal_xid',auth()->user()->id)->pluck('blocked_iam_principal_xid'))
+                ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', auth()->user()->id)->pluck('blocked_iam_principal_xid'))
                 ->select('following_iam_principal_xid', 'iam_principal_xid')
                 ->get();
 
@@ -420,15 +439,17 @@ class ProfileDetailsApiService
                     $q->select('id', 'user_name', 'full_name', 'profile_photo');
                 });
             })
-                ->with(['following' => function ($query) use ($search) {
-                    $query->when($search != null, function ($q) use ($search) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
-                        $q->where('user_name', 'like', '%' . $search . '%');
-                        $q->orWhere('full_name', 'like', '%' . $search . '%');
-                    }, function ($q) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
-                    });
-                }])
+                ->with([
+                    'following' => function ($query) use ($search) {
+                        $query->when($search != null, function ($q) use ($search) {
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->where('user_name', 'like', '%' . $search . '%');
+                            $q->orWhere('full_name', 'like', '%' . $search . '%');
+                        }, function ($q) {
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        });
+                    }
+                ])
                 ->select('following_iam_principal_xid', 'iam_principal_xid')
                 ->where('iam_principal_xid', auth()->user()->id)
                 ->get();
@@ -494,16 +515,15 @@ class ProfileDetailsApiService
      */
     public function deleteMyAccount()
     {
-        try{
+        try {
             DB::beginTransaction();
-            IamPrincipal::where('id',auth()->user()->id)->update(['is_deleted'=>true]);
+            IamPrincipal::where('id', auth()->user()->id)->update(['is_deleted' => true]);
             DB::commit();
-            return jsonResponseWithSuccessMessageApi('account deleted successfully',[],200);
-        }catch(Exception $e)
-        {
+            return jsonResponseWithSuccessMessageApi('account deleted successfully', [], 200);
+        } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Delete my account service failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            Log::error('Delete my account service failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -514,17 +534,16 @@ class ProfileDetailsApiService
      */
     public function accountVisibility($request)
     {
-        try{
+        try {
             DB::beginTransaction();
-            IamPrincipal::where('id',auth()->user()->id)->update($request->all());
+            IamPrincipal::where('id', auth()->user()->id)->update($request->all());
             DB::commit();
-            $status = $request->is_account_visibility == 0 ? '(Private)':'(Public)';
-            return jsonResponseWithSuccessMessageApi('account visibility status changed to '.$status,[],200);
-        }catch(Exception $e)
-        {
+            $status = $request->is_account_visibility == 0 ? '(Private)' : '(Public)';
+            return jsonResponseWithSuccessMessageApi('account visibility status changed to ' . $status, [], 200);
+        } catch (Exception $e) {
             DB::rollBack();
-            Log::error('account visibility service failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            Log::error('account visibility service failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 }
