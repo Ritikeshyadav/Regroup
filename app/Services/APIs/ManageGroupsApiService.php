@@ -65,7 +65,7 @@ class ManageGroupsApiService
             $validator = Validator::make($request, [
                 'manage_group_xid.*' => 'required|exists:manage_groups,id',
             ]);
-
+            $storeUserSelectedGroups=[];
             if ($validator->fails()) {
                 return jsonResponseWithErrorMessageApi($validator->errors()->all(), 403);
             }
@@ -78,7 +78,7 @@ class ManageGroupsApiService
             return jsonResponseWithSuccessMessageApi(__('success.save_data'), $storeUserSelectedGroups, 201);
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error('store user select group function failed: ' . $e->getMessage());
+            Log::error('store user select group service failed: ' . $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
