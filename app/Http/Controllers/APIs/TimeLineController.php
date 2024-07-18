@@ -89,8 +89,30 @@ class TimeLineController extends Controller
         }
     }
 
+ /**
+     * Created By : Hritik Yadav
+     * Created at : 18 July 2024
+     * Use : To get Timeline of my profile
+     */
+    public function getsingleTimelineData(Request $request)
+    {
+        try{
 
+            $timeLineId = $request->query('timeline_id');
 
+            $data = Abilities::select('id', 'name')
+            ->where('is_active', 1)
+            ->where('id',$timeLineId)
+            ->get();
+        
+       
+        return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $data, 200);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch List of abilities function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
 
 
 }
