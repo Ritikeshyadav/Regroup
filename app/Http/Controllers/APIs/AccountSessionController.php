@@ -32,7 +32,7 @@ class AccountSessionController extends Controller
                 $validator = Validator::make(
                     $request->all(),
                     [
-                        'ip_address' => 'required',
+                        // 'ip_address' => 'required',
                         'device_name' => 'required',
                        
                         
@@ -48,7 +48,7 @@ class AccountSessionController extends Controller
                 return $this->accountSessionApiService->storeAccountSessionService($request);
             
         } catch (Exception $ex) {
-            Log::error('add profile details function failed: ' . $ex->getMessage());
+            Log::error('add accont sessions details function failed: ' . $ex->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
@@ -58,18 +58,18 @@ class AccountSessionController extends Controller
      * Created At : 18 July 2024
      * Use : To Fetch Account Session of Particular User 
      */
-    public function fetchRole(Request $request)
+    public function getAccountSessions(Request $request)
     {
         try {
             $token = readHeaderToken();
             if ($token) {
                 $iamprincipal_id = $token['sub'];
-                return $this->ProfileDetailsApiService->fetchRoleService($iamprincipal_id, $request);
+                return $this->accountSessionApiService->getAccountSessionsService($iamprincipal_id);
             } else {
                 return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
             }
         } catch (Exception $ex) {
-            Log::error('fetch role master function failed: ' . $ex->getMessage());
+            Log::error('fetch Account session master function failed: ' . $ex->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }

@@ -28,6 +28,9 @@ class AccountSessionApiService
 
             $ipAddress = $request->ip();
 
+            Log::info("Ip Address getting is ");
+            Log::info($ipAddress);
+
             // Check if the IP address is local
             if ($ipAddress === '127.0.0.1' || $ipAddress === '::1') {
                 // Use a known external IP address for testing purposes
@@ -71,21 +74,20 @@ class AccountSessionApiService
                     ]);
 
                 } else {
-                    return response()->json(['message' => 'IP lookup failed'], 500);
+                    return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
                 }
+
+
             } else {
-                return response()->json(['message' => 'HTTP request failed'], 500);
+                return jsonResponseWithErrorMessageApi("Not Found any Details Of Provided IP Address", 500);
             }
 
-
-
             DB::commit();
-
 
             return jsonResponseWithSuccessMessageApi(__('success.save_data'), [], 201);
         } catch (Exception $ex) {
             DB::rollBack();
-            Log::error(' Timeline  service function failed: ' . $ex->getMessage());
+            Log::error('Store Session failed: ' . $ex->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
@@ -96,20 +98,20 @@ class AccountSessionApiService
      * Created At : 10 July 2024
      * Use : To fetch business profile service 
      */
-    public function getListOfAbilitiesService()
+    public function getAccountSessionsService($iamPrincipalId)
     {
         try {
-            $data = Abilities::select('id', 'name')
-                ->where('is_active', 1)
-                ->get();
 
-            if (empty($data)) {
-                Log::info('Ablilities not found.');
+            $getAccountSessions = AccountSessions::select('id','device_name','ip_address','country','state','city','zip','isp',
+            'lat','lon','timezone')->where('iam_principal_xid', $iamPrincipalId)->get();
+
+            if (empty($getAccountSessions)) {
+                Log::info('Account Sessions not found.');
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
             }
-            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $data, 200);
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $getAccountSessions, 200);
         } catch (Exception $e) {
-            Log::error('Fetch Abilities service function failed: ' . $e->getMessage());
+            Log::error('Fetch Account Sessions function failed: ' . $e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }

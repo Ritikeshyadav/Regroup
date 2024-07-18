@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\APIs;
 
 use App\Http\Controllers\Controller;
+use App\Models\IamPrincipal;
 use App\Services\APIs\AuthApiService;
 use Exception;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 class AuthApiController extends Controller
 {
 
@@ -390,12 +392,29 @@ class AuthApiController extends Controller
                 'password.regex' => 'The password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and minimum 8 and maximum 20 characters long.'
             ]
         );
+    }  
+
+/**
+     * Created By : Chandan Yadav
+     * Created At : 11 June 2024
+     * Use : To logout user
+     */
+    public function logout(Request $request)
+    {
+        try {
+            $token = readHeaderToken();
+            if ($token) {
+                JWTAuth::invalidate(JWTAuth::getToken());
+                IamPrincipal::where('id', $token['sub'])->update(['one_signal_player_id' => null]);
+                return jsonResponseWithSuccessMessageApi(__('auth.logout_successfully'), 200);
+            } else {
+                return jsonResponseWithErrorMessage(__('auth.authentication_failed'), 401);
+            }
+        } catch (Exception $e) {
+            Log::error('Account Logout failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessage(__('auth.something_went_wrong'), 500);
+        }
     }
-    
-
-
-  
-
 
 
 

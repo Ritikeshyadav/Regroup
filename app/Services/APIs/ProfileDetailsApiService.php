@@ -242,7 +242,8 @@ class ProfileDetailsApiService
                 'weight' => $data->weight,
                 'batting_average' => $data->batting_average,
                 'follows' => $this->fetchFollowers($iamprincipal_id),
-                'timelines' => $getTimelines
+                'timelines' => $getTimelines,
+                'account_visibility'=> $data->is_account_visibility
             ];
 
             return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $formatData, 200);
@@ -513,13 +514,13 @@ class ProfileDetailsApiService
      * Created At : 17 July 2024
      * Use : To delete account
      */
-    public function deleteMyAccount()
+    public function deleteMyAccount($request)
     {
         try {
             DB::beginTransaction();
-            IamPrincipal::where('id', auth()->user()->id)->update(['is_deleted' => true]);
+            IamPrincipal::where('id', auth()->user()->id)->update(['is_deleted' => true, 'reason' => $request->reason]);
             DB::commit();
-            return jsonResponseWithSuccessMessageApi('account deleted successfully', [], 200);
+            return jsonResponseWithSuccessMessageApi('Account Deleted Successfully', [], 200);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Delete my account service failed: ' . $e->getMessage());
