@@ -333,10 +333,16 @@ class ProfileDetailsApiController extends Controller
      * Created At : 17 July 2024
      * Use : To delete account
      */
-    public function deleteMyAccount()
+    public function deleteMyAccount(Request $request)
     {
         try{
-            return $this->ProfileDetailsApiService->deleteMyAccount();
+            $validator = Validator::make($request->all(),['reason'=>'required']);
+            if($validator->fails())
+            {
+                log::info('Delete account API validation error: '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
+            }
+            return $this->ProfileDetailsApiService->deleteMyAccount($request);
         }catch(Exception $e)
         {
             Log::error('Delete my account function failed: '.$e->getMessage());

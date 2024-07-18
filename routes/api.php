@@ -58,6 +58,8 @@ Route::middleware(['BasicAuthApi'])->group(function () {
         Route::prefix('/v1')->group(function () {
 
 
+            Route::post('/logout', [AuthApiController::class, 'logout']);
+            
             //update User Account type when Register with apple of google
             Route::post('/update-user-account-type', [AuthApiController::class, 'updateUserAccountType']);
 
@@ -106,7 +108,7 @@ Route::middleware(['BasicAuthApi'])->group(function () {
         Route::post('/block-profile', [ProfileDetailsApiController::class, 'blockProfile']);
         Route::post('/share-profile', [ProfileDetailsApiController::class, 'shareProfile']);
         Route::get('/fetch-blocked-profile', [ProfileDetailsApiController::class, 'fetchBlockedProfile']);
-        Route::get('/delete-my-account', [ProfileDetailsApiController::class, 'deleteMyAccount']);
+        Route::post('/delete-my-account', [ProfileDetailsApiController::class, 'deleteMyAccount']);
         Route::post('/account-visibility', [ProfileDetailsApiController::class, 'accountVisibility']);
 
             // ============================( Follow API's)===================================//
@@ -156,7 +158,7 @@ Route::middleware(['BasicAuthApi'])->group(function () {
 
              // ===============================( Account Session's )=============================== //
              Route::post('/store-account-session',[AccountSessionController::class, 'storeAccountSession']);
-            //  Route::get('/list-of-abilities',[AccountSessionController::class, 'listOfAbilities']);
+             Route::get('/get-account-session',[AccountSessionController::class, 'getAccountSessions']);
  
 
             
