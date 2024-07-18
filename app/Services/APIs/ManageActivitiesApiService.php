@@ -71,7 +71,7 @@ class ManageActivitiesApiService
             ]);
 
             if ($validator->fails()) {
-                return jsonResponseWithErrorMessageApi($validator->errors(), 422);
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(), 403);
             }
 
             // $space_folder_list_task_link_xid = SpaceFolderListTaskLink::where('id', $request->space_folder_list_task_link_xid)->first();
