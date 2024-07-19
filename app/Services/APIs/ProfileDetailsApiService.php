@@ -218,12 +218,12 @@ class ProfileDetailsApiService
                 $data->interestName = $interestName;
             }
 
-            $getTimelines = ManageTimelines::select('id', 'club_name', 'role_name', 'team_name', 'start_date', 'end_date', 'abilities_xids')->where('iam_principal_xid', $iamprincipal_id)->where('is_active', 1)->get();
+            $getTimelines = ManageTimelines::select('id', 'club_name', 'role_name', 'team_name', 'start_date', 'end_date', 'abilities_xids')->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->where('is_active', 1)->get();
             $myJoinedSubGroups = IamPrincipalManageSubGroupsLink::select('id','iam_principal_xid','manage_group_xid','manage_sub_group_xid')
             ->with(['subGroupData' => function ($query) {
                 $query->select('id','title','sub_group_image'); // Replace with the columns you need
             }])
-           ->where('iam_principal_xid',$iamprincipal_id)->get();
+           ->where('iam_principal_xid',$iamprincipal_id)->orderByDesc('id')->get();
             // dd( $myJoinedSubGroups );
         
           

@@ -155,7 +155,11 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             // ===============================( Timeline's )=============================== //
             Route::post('/create-timeline',[TimeLineController::class, 'createTimeLine']);
             Route::get('/list-of-abilities',[TimeLineController::class, 'listOfAbilities']);
+            Route::get('/get-timeline-data',[TimeLineController::class, 'getsingleTimelineData']);
+            Route::post('/update-timeline',[TimeLineController::class, 'updateTimeline']);
+            Route::post('/delete-timeline',[TimeLineController::class, 'deleteTimeline']);
 
+            
              // ===============================( Account Session's )=============================== //
              Route::post('/store-account-session',[AccountSessionController::class, 'storeAccountSession']);
              Route::get('/get-account-session',[AccountSessionController::class, 'getAccountSessions']);
