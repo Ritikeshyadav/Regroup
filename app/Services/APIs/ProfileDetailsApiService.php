@@ -236,7 +236,7 @@ class ProfileDetailsApiService
                 $getTimelines[$key]['abilities'] = $abilities;
             }
 
-            $userCertifications = IamPrincipalCertifications::select('id','certification_name','certification_image','certification_reasong','certification_date','iam_principal_xid')->where('iam_principal_xid',$iamprincipal_id)->get();
+            $userCertifications = IamPrincipalCertifications::select('id','certification_name','certification_image','certification_reason','certification_date','iam_principal_xid')->where('iam_principal_xid',$iamprincipal_id)->get();
             foreach($userCertifications as $key =>$val){
                 $userCertifications[$key]['certification_image'] = ListingImageUrl('certifications',$val->certification_image);
             }
