@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Support\Facades\Hash;
 use App\Services\APIs\ManageInterestApiService;
+use Carbon\Carbon;
 
 class ProfileDetailsApiService
 {
@@ -220,14 +221,16 @@ class ProfileDetailsApiService
             }
 
             $getTimelines = ManageTimelines::select('id', 'club_name', 'role_name', 'team_name', 'start_date', 'end_date', 'abilities_xids')->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->where('is_active', 1)->get();
-            $myJoinedSubGroups = IamPrincipalManageSubGroupsLink::select('id','iam_principal_xid','manage_group_xid','manage_sub_group_xid')
-            ->with(['subGroupData' => function ($query) {
-                $query->select('id','title','sub_group_image'); // Replace with the columns you need
-            }])
-           ->where('iam_principal_xid',$iamprincipal_id)->orderByDesc('id')->get();
+            $myJoinedSubGroups = IamPrincipalManageSubGroupsLink::select('id', 'iam_principal_xid', 'manage_group_xid', 'manage_sub_group_xid')
+                ->with([
+                    'subGroupData' => function ($query) {
+                        $query->select('id', 'title', 'sub_group_image'); // Replace with the columns you need
+                    }
+                ])
+                ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
             // dd( $myJoinedSubGroups );
-        
-          
+
+
             //for new release audio image
             foreach ($getTimelines as $key => $timeline) {
 
@@ -236,10 +239,18 @@ class ProfileDetailsApiService
                 $getTimelines[$key]['abilities'] = $abilities;
             }
 
-            $userCertifications = IamPrincipalCertifications::select('id','certification_name','certification_image','certification_reason','certification_date','iam_principal_xid')->where('iam_principal_xid',$iamprincipal_id)->get();
-            foreach($userCertifications as $key =>$val){
-                $userCertifications[$key]['certification_image'] = ListingImageUrl('certifications',$val->certification_image);
+            $userCertifications = IamPrincipalCertifications::select('id', 'certification_name', 'certification_image', 'certification_reason', 'certification_date', 'iam_principal_xid')->where('iam_principal_xid', $iamprincipal_id)->get();
+            foreach ($userCertifications as $key => $val) {
+                $userCertifications[$key]['certification_image'] = ListingImageUrl('certifications', $val->certification_image);
             }
+            $date1 = Carbon::now()->format('y-m-d');
+            $date2 = $data->created_at->format('y-m-d');
+
+            $date1 = Carbon::parse($date1);
+            $date2 = Carbon::parse($date2);
+
+            $diffForHumans = $date2->diffInDays($date1);
+
 
             $formatData = (array) [
                 'id' => $data->id,
@@ -247,8 +258,8 @@ class ProfileDetailsApiService
                 // 'pin' => $data->pin,
                 'full_name' => $data->full_name,
                 'gender' => $data->gender,
-                'profile_photo'=> ListingImageUrl('profile_photos', $data->profile_photo),
-                
+                'profile_photo' => ListingImageUrl('profile_photos', $data->profile_photo),
+
                 'date_of_birth' => $data->date_of_birth,
                 'interest' => $interestName,
                 'about' => $data->about,
@@ -259,9 +270,10 @@ class ProfileDetailsApiService
                 'batting_average' => $data->batting_average,
                 'follows' => $this->fetchFollowers($iamprincipal_id),
                 'timelines' => $getTimelines,
-                'account_visibility'=> $data->is_account_visibility,
-                'my_joined_subgroups'=>$myJoinedSubGroups,
-                'certifications'=> $userCertifications
+                'account_visibility' => $data->is_account_visibility,
+                'my_joined_subgroups' => $myJoinedSubGroups,
+                'certifications' => $userCertifications,
+                'days_before_joined' => $diffForHumans
             ];
 
             return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $formatData, 200);
@@ -280,16 +292,16 @@ class ProfileDetailsApiService
     {
         try {
             //updated by hritik on 19th July ,2024
-           // ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))
+            // ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))
 
 
             $data['following'] = IamPrincipalFollowers::where('iam_principal_xid', $iamprincipal_id)
-            ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))
-            ->count();
-            
+                ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))
+                ->count();
+
             // ->count();
             $data['followers'] = IamPrincipalFollowers::where('following_iam_principal_xid', $iamprincipal_id)
-            ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))->count();
+                ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))->count();
             return $data;
         } catch (Exception $e) {
             Log::error('Fetch follower service function failed: ' . $e->getMessage());
@@ -575,7 +587,7 @@ class ProfileDetailsApiService
         }
     }
 
-/**
+    /**
      * Created By : Hritik
      * Created At : 19 July 2024
      * Use : To Store Certification
@@ -586,20 +598,20 @@ class ProfileDetailsApiService
             DB::beginTransaction();
 
             $certificationImage = $request->file('certification_image');
-            $certificationImagePath = saveSingleImageWithoutCrop($certificationImage, 'certifications',null);
+            $certificationImagePath = saveSingleImageWithoutCrop($certificationImage, 'certifications', null);
 
-         
+
             $certificationData = IamPrincipalCertifications::create(
                 [
                     'iam_principal_xid' => $request->iam_principal_xid,
                     'certification_name' => $request->certification_name,
                     'certification_reason' => $request->certification_reason,
                     'certification_image' => $certificationImagePath,
-                    'certification_date' => $request->certification_date,  
+                    'certification_date' => $request->certification_date,
                 ]
             );
             DB::commit();
-          
+
             return jsonResponseWithSuccessMessageApi(__('success.save_data'), $certificationData, 201);
         } catch (Exception $e) {
             DB::rollBack();
@@ -608,5 +620,5 @@ class ProfileDetailsApiService
         }
     }
 
-    
+
 }

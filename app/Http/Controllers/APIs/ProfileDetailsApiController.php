@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\APIs;
 
 use App\Http\Controllers\Controller;
+use App\Models\IamPrincipalCertifications;
 use App\Services\APIs\ProfileDetailsApiService;
 use Exception;
 use Illuminate\Http\Request;
@@ -402,6 +403,39 @@ class ProfileDetailsApiController extends Controller
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
+
+
+  /**
+     * Created By : Hritik
+     * Created At : 19 July 2024
+     * Use : To store Certifications
+     **/
+    public function deleteCertification(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(),[
+                
+                'certification_id'=>'required|integer',
+                
+            ]);
+            if($validator->fails())
+            {
+                Log::info('Delete Certification validation error: '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
+            }
+            $request['iam_principal_xid']= auth()->user()->id;
+
+            $deleteCertification = IamPrincipalCertifications::where('id',$request->certification_id)->delete();
+            return jsonResponseWithSuccessMessageApi(__('success.delete'), [], 200);
+
+        }catch(Exception $e)
+        {
+            Log::error('Delete Certification function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    
 
 
     

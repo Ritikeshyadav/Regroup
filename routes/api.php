@@ -180,8 +180,9 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             // ===============================( Certifications )=============================== //
 
             Route::post('/store-certification',[ProfileDetailsApiController::class, 'storeCertification']);
+            Route::post('/delete-certification',[ProfileDetailsApiController::class, 'deleteCertification']);
 
-
+    
 
           
         });
