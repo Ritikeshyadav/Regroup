@@ -74,6 +74,44 @@ class TimeLineApiService
         }
     }
 
+
+
+
+    
+    public function updateTimelineOfIndividual($request)
+    {
+        try {
+            DB::beginTransaction();
+            $iamprincipal_id = $request->iam_principal_xid;
+            $timeLineId = $request->timeline_id;
+            // dd($request->all(),$iamprincipal_id);
+
+
+
+            $timelines = ManageTimelines::where('id',$timeLineId)->update([
+                    'iam_principal_xid' => $iamprincipal_id,
+                    'club_name' => $request->club_name,
+                    'role_name' => $request->role_name,
+                    'team_name' => $request->team_name,
+                    'start_date' => $request->start_date,
+                    'end_date' => $request->end_date,
+                    'abilities_xids' => $request->abilities_xids,
+
+
+                ]
+            );
+
+            DB::commit();
+
+
+            return jsonResponseWithSuccessMessageApi(__('success.update_data'),[], 200);
+        } catch (Exception $ex) {
+            DB::rollBack();
+            Log::error(' Timeline  service function failed: ' . $ex->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
 }
 
 
