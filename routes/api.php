@@ -7,6 +7,7 @@ use App\Http\Controllers\APIs\BusinessUserProfileController;
 use App\Http\Controllers\APIs\FacebookLoginApiController;
 use App\Http\Controllers\APIs\GoogleLoginApiController;
 
+use App\Http\Controllers\APIs\IndividualUserGuestViewController;
 use App\Http\Controllers\APIs\LogoutApiController;
 use App\Http\Controllers\APIs\ManageActivitiesApiController;
 use App\Http\Controllers\APIs\ManageCMSController;
@@ -164,10 +165,20 @@ Route::middleware(['BasicAuthApi'])->group(function () {
              Route::post('/store-account-session',[AccountSessionController::class, 'storeAccountSession']);
              Route::get('/get-account-session',[AccountSessionController::class, 'getAccountSessions']);
  
+ // ===============================( Guest View of Individual User's )=============================== //
+            Route::get('/get-guest-view-of-individual-user-profile',[IndividualUserGuestViewController::class, 'getIndividualUserGuestViewData']);
+            Route::get('/get-guest-user-followers',[IndividualUserGuestViewController::class, 'getFollowersOfGuestUser']);
+            Route::get('/get-guest-user-following',[IndividualUserGuestViewController::class, 'getFollowingOfGuestUser']);
 
-            
+          // ===============================( Guest View of Individual User's )=============================== //
+          Route::get('/get-guest-view-of-individual-user-profile',[IndividualUserGuestViewController::class, 'getIndividualUserGuestViewData']);
+          
+          Route::get('/get-guest-user-followers',[IndividualUserGuestViewController::class, 'getFollowersOfGuestUser']);
+          Route::get('/get-guest-user-following',[IndividualUserGuestViewController::class, 'getFollowingOfGuestUser']);
 
-        
+          Route::get('/get-guest-view-of-business-user-profile',[IndividualUserGuestViewController::class, 'getBusinessUserGuestViewData']);
+
+          
         });
     });
 });

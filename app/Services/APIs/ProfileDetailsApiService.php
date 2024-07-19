@@ -270,8 +270,17 @@ class ProfileDetailsApiService
     public function fetchFollowers($iamprincipal_id)
     {
         try {
-            $data['following'] = IamPrincipalFollowers::where('iam_principal_xid', $iamprincipal_id)->count();
-            $data['followers'] = IamPrincipalFollowers::where('following_iam_principal_xid', $iamprincipal_id)->count();
+            //updated by hritik on 19th July ,2024
+           // ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))
+
+
+            $data['following'] = IamPrincipalFollowers::where('iam_principal_xid', $iamprincipal_id)
+            ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))
+            ->count();
+            
+            // ->count();
+            $data['followers'] = IamPrincipalFollowers::where('following_iam_principal_xid', $iamprincipal_id)
+            ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))->count();
             return $data;
         } catch (Exception $e) {
             Log::error('Fetch follower service function failed: ' . $e->getMessage());
