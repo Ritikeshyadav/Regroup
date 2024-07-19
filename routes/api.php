@@ -165,18 +165,23 @@ Route::middleware(['BasicAuthApi'])->group(function () {
              Route::post('/store-account-session',[AccountSessionController::class, 'storeAccountSession']);
              Route::get('/get-account-session',[AccountSessionController::class, 'getAccountSessions']);
  
- // ===============================( Guest View of Individual User's )=============================== //
+        // ===============================( Guest View of Individual User's )=============================== //
             Route::get('/get-guest-view-of-individual-user-profile',[IndividualUserGuestViewController::class, 'getIndividualUserGuestViewData']);
             Route::get('/get-guest-user-followers',[IndividualUserGuestViewController::class, 'getFollowersOfGuestUser']);
             Route::get('/get-guest-user-following',[IndividualUserGuestViewController::class, 'getFollowingOfGuestUser']);
 
           // ===============================( Guest View of Individual User's )=============================== //
           Route::get('/get-guest-view-of-individual-user-profile',[IndividualUserGuestViewController::class, 'getIndividualUserGuestViewData']);
-          
+
           Route::get('/get-guest-user-followers',[IndividualUserGuestViewController::class, 'getFollowersOfGuestUser']);
           Route::get('/get-guest-user-following',[IndividualUserGuestViewController::class, 'getFollowingOfGuestUser']);
 
           Route::get('/get-guest-view-of-business-user-profile',[IndividualUserGuestViewController::class, 'getBusinessUserGuestViewData']);
+            // ===============================( Certifications )=============================== //
+
+            Route::post('/store-certification',[ProfileDetailsApiController::class, 'storeCertification']);
+
+
 
           
         });
