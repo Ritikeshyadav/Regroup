@@ -5,6 +5,7 @@ namespace App\Services\APIs;
 use App\Models\Abilities;
 use App\Models\IamPrincipal;
 use App\Models\IamPrincipalBlockedProfile;
+use App\Models\IamPrincipalCertifications;
 use App\Models\IamPrincipalManageSubGroupsLink;
 use App\Models\IamRole;
 use App\Models\IamPrincipalFollowers;
@@ -54,29 +55,29 @@ class ProfileDetailsApiService
         }
     }
 
-    /**
-     * Created By : Chandan Yadav
-     * Created At : 08 April 2024
-     * Use : To fetch role master listing service
-     */
-    public function fetchRoleService()
-    {
-        try {
-            $data = IamRole::select('id', 'role_name')
-                ->where([['is_active', 1]])
-                ->get();
+    // /**
+    //  * Created By : Chandan Yadav
+    //  * Created At : 08 April 2024
+    //  * Use : To fetch role master listing service
+    //  */
+    // public function fetchRoleService()
+    // {
+    //     try {
+    //         $data = IamRole::select('id', 'role_name')
+    //             ->where([['is_active', 1]])
+    //             ->get();
 
-            if ($data == null) {
-                Log::info('role master data not found.');
-                return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
-            }
-            $responseData['result'] = $data;
-            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $responseData, 201);
-        } catch (Exception $ex) {
-            Log::error('fetch role master service function failed: ' . $ex->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
-        }
-    }
+    //         if ($data == null) {
+    //             Log::info('role master data not found.');
+    //             return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
+    //         }
+    //         $responseData['result'] = $data;
+    //         return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $responseData, 201);
+    //     } catch (Exception $ex) {
+    //         Log::error('fetch role master service function failed: ' . $ex->getMessage());
+    //         return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+    //     }
+    // }
 
     /**
      * Created By : Chandan Yadav
@@ -235,12 +236,19 @@ class ProfileDetailsApiService
                 $getTimelines[$key]['abilities'] = $abilities;
             }
 
+            $userCertifications = IamPrincipalCertifications::select('id','certification_name','certification_image','certification_reasong','certification_date','iam_principal_xid')->where('iam_principal_xid',$iamprincipal_id)->get();
+            foreach($userCertifications as $key =>$val){
+                $userCertifications[$key]['certification_image'] = ListingImageUrl('certifications',$val->certification_image);
+            }
+
             $formatData = (array) [
                 'id' => $data->id,
                 'user_name' => $data->user_name,
                 // 'pin' => $data->pin,
                 'full_name' => $data->full_name,
                 'gender' => $data->gender,
+                'profile_photo'=> ListingImageUrl('profile_photos', $data->profile_photo),
+                
                 'date_of_birth' => $data->date_of_birth,
                 'interest' => $interestName,
                 'about' => $data->about,
@@ -252,7 +260,8 @@ class ProfileDetailsApiService
                 'follows' => $this->fetchFollowers($iamprincipal_id),
                 'timelines' => $getTimelines,
                 'account_visibility'=> $data->is_account_visibility,
-                'my_joined_subgroups'=>$myJoinedSubGroups
+                'my_joined_subgroups'=>$myJoinedSubGroups,
+                'certifications'=> $userCertifications
             ];
 
             return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $formatData, 200);
@@ -565,4 +574,39 @@ class ProfileDetailsApiService
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
+
+/**
+     * Created By : Hritik
+     * Created At : 19 July 2024
+     * Use : To Store Certification
+     */
+    public function storeCertificationOfUserService($request)
+    {
+        try {
+            DB::beginTransaction();
+
+            $certificationImage = $request->file('certification_image');
+            $certificationImagePath = saveSingleImageWithoutCrop($certificationImage, 'certifications',null);
+
+         
+            $certificationData = IamPrincipalCertifications::create(
+                [
+                    'iam_principal_xid' => $request->iam_principal_xid,
+                    'certification_name' => $request->certification_name,
+                    'certification_reason' => $request->certification_reason,
+                    'certification_image' => $certificationImagePath,
+                    'certification_date' => $request->certification_date,  
+                ]
+            );
+            DB::commit();
+          
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'), $certificationData, 201);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Store Certification service failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    
 }

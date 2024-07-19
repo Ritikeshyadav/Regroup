@@ -47,26 +47,26 @@ class ProfileDetailsApiController extends Controller
         }
     }
 
-    /**
-     * Created By : Chandan Yadav
-     * Created At : 08 April 2024
-     * Use : To role master listing 
-     */
-    public function fetchRole(Request $request)
-    {
-        try {
-            $token = readHeaderToken();
-            if ($token) {
-                $iamprincipal_id = $token['sub'];
-                return $this->ProfileDetailsApiService->fetchRoleService($iamprincipal_id, $request);
-            } else {
-                return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
-            }
-        } catch (Exception $ex) {
-            Log::error('fetch role master function failed: ' . $ex->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
-        }
-    }
+    // /**
+    //  * Created By : Chandan Yadav
+    //  * Created At : 08 April 2024
+    //  * Use : To role master listing 
+    //  */
+    // public function fetchRole(Request $request)
+    // {
+    //     try {
+    //         $token = readHeaderToken();
+    //         if ($token) {
+    //             $iamprincipal_id = $token['sub'];
+    //             return $this->ProfileDetailsApiService->fetchRoleService($iamprincipal_id, $request);
+    //         } else {
+    //             return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+    //         }
+    //     } catch (Exception $ex) {
+    //         Log::error('fetch role master function failed: ' . $ex->getMessage());
+    //         return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+    //     }
+    // }
 
 
     /**
@@ -371,4 +371,38 @@ class ProfileDetailsApiController extends Controller
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
+
+
+    /**
+     * Created By : Hritik
+     * Created At : 19 July 2024
+     * Use : To store Certifications
+     **/
+    public function storeCertification(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(),[
+                
+                'certification_name'=>'required',
+                'certification_reason'=>'required',
+                'certification_image'=>'required|mimes:png,jpg,jpeg|max:2048',
+                'certification_date'=>'required',
+                
+            ]);
+            if($validator->fails())
+            {
+                Log::info('Store Certification validation error: '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
+            }
+            $request['iam_principal_xid']= auth()->user()->id;
+            return $this->ProfileDetailsApiService->storeCertificationOfUserService($request);
+        }catch(Exception $e)
+        {
+            Log::error('Account visibility function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+
+    
 }
