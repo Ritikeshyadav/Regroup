@@ -136,7 +136,11 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::get('/fetch-communities', [ManageCommunitiesApiController::class, 'fetchManageCommunities']);
             Route::post('/select-communities', [ManageCommunitiesApiController::class, 'storeSelectedCommunity']);
             Route::get('/search-community', [ManageCommunitiesApiController::class, 'searchCommunity']);
+            Route::post('/create-community', [ManageCommunitiesApiController::class, 'createCommunity']);
+            Route::get('/edit-community', [ManageCommunitiesApiController::class, 'editCommunity']);
 
+            Route::post('/update-community', [ManageCommunitiesApiController::class, 'updateCommunity']);
+            
             
             
             // ================================send mail============================//

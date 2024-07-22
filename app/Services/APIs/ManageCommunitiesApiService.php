@@ -120,4 +120,149 @@ class ManageCommunitiesApiService
         }
 
     }
+
+
+
+
+
+    /*
+     * Created By : Hritik
+     * Created At : 22 july 2024
+     * Use : Store Community  
+     */
+
+    public function createCommunityApiService($request)
+    {
+        try {
+
+            DB::beginTransaction();
+
+
+            // dd($request->all());
+            $iamprincipal_id = $request->iam_principal_xid;
+
+            if ($request->hasFile('community_profile_photo')) {
+                $image = $request->file('community_profile_photo');
+                $communityProfilePhoto = saveSingleImageWithoutCrop($image, 'community_profile_photo', null);
+            } else {
+                $communityProfilePhoto = null;
+            }
+
+            if ($request->hasFile('community_banner_image')) {
+                $image = $request->file('community_banner_image');
+                $communityBannerImage = saveSingleImageWithoutCrop($image, 'community_banner_image', null);
+            } else {
+                $communityBannerImage = null;
+            }
+
+
+
+            $newCommunity = new ManageCommunity();
+
+            $newCommunity->community_profile_photo = $communityProfilePhoto;
+            $newCommunity->community_banner_image = $communityBannerImage;
+            $newCommunity->community_name = $request->community_name;
+            $newCommunity->community_location = $request->community_location;
+            $newCommunity->community_description = $request->community_description;
+            $newCommunity->community_type_xid = $request->community_type_xid;
+            $newCommunity->activity_xid = $request->activity_xid;
+
+
+            $newCommunity->save();
+            Log::info("Community stored sucessfully");
+
+            //join community =
+            IamPrincipalManageCommunityLink::create([
+                'iam_principal_xid' => $iamprincipal_id,
+                'manage_community_xid' => $newCommunity->id,
+                'joined_at' => Carbon::now(),
+                'is_admin' => 1
+            ]);
+
+            Log::info("Community linked stored sucessfully");
+
+            DB::commit();
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'), [], 201);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('store user select community function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+
+    }
+
+
+    /*
+     * Created By : Hritik
+     * Created At : 22 july 2024
+     * Use : Update Community  
+     */
+
+
+    public function updateCommunityApiService($request)
+    {
+        try {
+            DB::beginTransaction();
+            $iamprincipal_id = $request->iam_principal_xid;
+            $communityId = $request->community_id;
+
+            
+            // dd($request->all(),$iamprincipal_id);
+            $communityData = ManageCommunity::where('id', $communityId)->first();
+
+            if ($request->hasFile('community_profile_photo')) {
+                $image = $request->community_profile_photo;
+                $image_db = null;
+            } else {
+                $image = null;
+                $image_db = $communityData->community_profile_photo;
+            }
+
+            $communityProfileImage = saveSingleImageWithoutCrop($image, 'community_profile_photo', $image_db);
+
+
+            if ($request->hasFile('community_banner_image')) {
+                $image = $request->community_banner_image;
+                $image_db = null;
+            } else {
+                $image = null;
+                $image_db = $communityData->community_banner_image;
+            }
+            $communityBannerImage = saveSingleImageWithoutCrop($image, 'community_banner_image', $image_db);
+
+
+
+            $updateCommunity = ManageCommunity::where('id', $communityId)->update(
+                [
+
+                    'community_profile_photo' => $communityProfileImage,
+                    'community_banner_image' => $communityBannerImage,
+
+                    'community_name' => $request->community_name,
+                    'community_location' => $request->community_location,
+                    'community_description' => $request->community_description,
+                    'community_type_xid' => $request->community_type_xid,
+                    'activity_xid' => $request->activity_xid,
+
+
+                ]
+            );
+
+            DB::commit();
+
+
+            return jsonResponseWithSuccessMessageApi(__('success.update_data'), [], 200);
+        } catch (Exception $ex) {
+            DB::rollBack();
+            Log::error(' Timeline  service function failed: ' . $ex->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+
+    }
+
+
+
+
 }
+
+
