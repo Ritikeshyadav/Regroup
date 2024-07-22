@@ -424,22 +424,22 @@ class ProfileDetailsApiService
                 'blockedProfile',
                 function ($query) use ($search) {
                     $query->when($search != null, function ($q) use ($search) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                         $q->where('user_name', 'like', '%' . $search . '%');
                         $q->orWhere('full_name', 'like', '%' . $search . '%');
                     }, function ($q) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                     });
                 }
             )
                 ->with([
                     'blockedProfile' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                         });
                     }
                 ])
@@ -468,21 +468,21 @@ class ProfileDetailsApiService
             $search = $request->search;
             $followers = IamPrincipalFollowers::whereHas('follower', function ($query) use ($search) {
                 $query->when($search != null, function ($q) use ($search) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                     $q->where('user_name', 'like', '%' . $search . '%');
                     $q->orWhere('full_name', 'like', '%' . $search . '%');
                 }, function ($q) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                 });
             })
                 ->with([
                     'follower' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                         });
                     }
                 ])
@@ -513,21 +513,21 @@ class ProfileDetailsApiService
             $search = $request->search;
             $following = IamPrincipalFollowers::whereHas('following', function ($query) use ($search) {
                 $query->when($search != null, function ($q) use ($search) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                     $q->where('user_name', 'like', '%' . $search . '%');
                     $q->orWhere('full_name', 'like', '%' . $search . '%');
                 }, function ($q) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                 });
             })
                 ->with([
                     'following' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                         });
                     }
                 ])
