@@ -6,6 +6,7 @@ use App\Models\Abilities;
 use App\Models\IamPrincipal;
 use App\Models\IamPrincipalBlockedProfile;
 use App\Models\IamPrincipalCertifications;
+use App\Models\IamPrincipalManageGroupLink;
 use App\Models\IamPrincipalManageSubGroupsLink;
 use App\Models\IamRole;
 use App\Models\IamPrincipalFollowers;
@@ -228,6 +229,14 @@ class ProfileDetailsApiService
                     }
                 ])
                 ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
+
+                $myJoinedGroups = IamPrincipalManageGroupLink::select('id', 'iam_principal_xid', 'manage_group_xid')
+                ->with([
+                    'groupData' => function ($query) {
+                        $query->select('id', 'title', 'group_image'); // Replace with the columns you need
+                    }
+                ])
+                ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
             // dd( $myJoinedSubGroups );
 
 
@@ -271,6 +280,7 @@ class ProfileDetailsApiService
                 'follows' => $this->fetchFollowers($iamprincipal_id),
                 'timelines' => $getTimelines,
                 'account_visibility' => $data->is_account_visibility,
+                'my_joined_groups'=>$myJoinedGroups,
                 'my_joined_subgroups' => $myJoinedSubGroups,
                 'certifications' => $userCertifications,
                 'days_before_joined' => $diffForHumans
