@@ -170,12 +170,6 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::get('/get-guest-user-followers',[IndividualUserGuestViewController::class, 'getFollowersOfGuestUser']);
             Route::get('/get-guest-user-following',[IndividualUserGuestViewController::class, 'getFollowingOfGuestUser']);
 
-          // ===============================( Guest View of Individual User's )=============================== //
-          Route::get('/get-guest-view-of-individual-user-profile',[IndividualUserGuestViewController::class, 'getIndividualUserGuestViewData']);
-
-          Route::get('/get-guest-user-followers',[IndividualUserGuestViewController::class, 'getFollowersOfGuestUser']);
-          Route::get('/get-guest-user-following',[IndividualUserGuestViewController::class, 'getFollowingOfGuestUser']);
-
           Route::get('/get-guest-view-of-business-user-profile',[IndividualUserGuestViewController::class, 'getBusinessUserGuestViewData']);
             // ===============================( Certifications )=============================== //
 
