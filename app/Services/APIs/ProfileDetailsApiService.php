@@ -293,6 +293,37 @@ class ProfileDetailsApiService
         }
     }
 
+ /* 
+     * Created By : Hritik
+     * Created At : 22 July 2024
+     * Use : To fetch My joined Group service
+     */
+    public function myJoinedGroupsApiSerice($iamprincipal_id)
+    {
+        try {
+            $data = IamPrincipal::with('interestsLink.interest')->where('id', $iamprincipal_id)->first();
+          
+                $myJoinedGroups = IamPrincipalManageGroupLink::select('id', 'iam_principal_xid', 'manage_group_xid')
+                ->with([
+                    'groupData' => function ($query) {
+                        $query->select('id', 'title', 'group_image'); // Replace with the columns you need
+                    }
+                ])
+                ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
+            // dd( $myJoinedSubGroups );
+
+
+          
+
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $myJoinedGroups, 200);
+        } catch (Exception $e) {
+            Log::error('Fetch Joined Groups profile service function failes: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    
+
     /* 
      * Created By : Ritikesh Yadav
      * Created At : 09 July 2024
