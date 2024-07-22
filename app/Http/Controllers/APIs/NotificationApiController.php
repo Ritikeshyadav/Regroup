@@ -32,7 +32,7 @@ class NotificationApiController extends Controller
                 $content_type = $request->content_type;
                 $imageUrl = $request->image ? $request->image : null;
 
-                $result = Onesignalhelper::sendNotificationApi($playerId, $title, $message, $content_type, $imageUrl, $id = null);
+                // $result = Onesignalhelper::sendNotificationApi($playerId, $title, $message, $content_type, $imageUrl, $id = null);
 
                 $data = NotificationMaster::create([
                     'iamprincipal_xid' => $iamprincipal_id,

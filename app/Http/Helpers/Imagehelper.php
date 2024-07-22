@@ -105,7 +105,8 @@ if (!function_exists('saveSingleImageWithoutCrop')) {
             $folderPath = storage_path('app/public/uploads/' . $path . '/');
 
             // Generate a unique image name
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            // $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $imageName = uniqid() . '.' . $image->getClientOriginalExtension(); //hritik has updated this on 22-07-2024
 
             // Move the uploaded image to the specified folder
             $image->move($folderPath, $imageName);
