@@ -351,10 +351,34 @@ class ManagePostApiService
             {
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found',[],200));
             }
-            return jsonResponseWithSuccessMessageApi(__('success.data_not_found',$Comments,200));
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully',$Comments,200));
         }catch(Exception $e)
         {
             Log::error('Fetch comment with replied comment service failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    public function fetchUserLikedListService($request)
+    {
+        try{
+            $like_icon_id = $request->like_icons_xid;
+            $like_list = IamPrincipalPostsLikesLink::with(['iam_principal'=>function($q){
+                $q->select('id','user_name','full_name','profile_photo');
+            },'likeIcon'=>function($q){
+                $q->select('id','image');
+            }])
+            ->where('manage_posts_xid',$request->manage_posts_xid)
+            ->when($like_icon_id != null, function($q) use ($like_icon_id){
+                $q->where('like_icons_xid',$like_icon_id);
+            })
+            ->select('id','manage_posts_xid','iam_principal_xid','like_icons_xid')
+            ->get();
+
+            return jsonResponseWithSuccessMessageApi(__($like_list == null ? 'success.data_not_found' : 'success.data_fetched_successfully'), $like_list, 200);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch user like list service failed: '.$e->getMessage());
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
