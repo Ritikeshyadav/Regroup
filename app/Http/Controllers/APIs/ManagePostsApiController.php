@@ -249,4 +249,23 @@ class ManagePostsApiController extends Controller
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
+
+    public function fetchUserLikedList(Request $request)
+    {
+        try{
+            $validator = validator::make($request->all(),[
+                'manage_posts_xid' => 'required|exists:manage_posts,id',
+            ]);
+            if($validator->fails())          
+            {
+                log::info('fetch user like list validation failed: '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors(),403);
+            }
+            return $this->managePostApiService->fetchUserLikedListService($request);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch Comment with replied comment function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
 }

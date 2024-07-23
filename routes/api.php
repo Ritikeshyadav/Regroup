@@ -185,25 +185,28 @@ Route::middleware(['BasicAuthApi'])->group(function () {
 
             Route::post('/store-certification', [ProfileDetailsApiController::class, 'storeCertification']);
             Route::post('/delete-certification', [ProfileDetailsApiController::class, 'deleteCertification']);
+            Route::get('/my-joined-groups',[ProfileDetailsApiController::class, 'myJoinedGroups']);              
+            
+            Route::controller(ManagePostsApiController::class)->group(function(){
 
-            // ==================================( Manage Post's )=======================================
-            Route::get('fetch-communities-with-tags', [ManagePostsApiController::class, 'fetchCommunitiesWithTags']);
-            Route::post('store-tags', [ManagePostsApiController::class, 'storeTags']);
-            Route::post('store-post', [ManagePostsApiController::class, 'storePost']);
-            Route::get('fetch-post', [ManagePostsApiController::class, 'fetchPost']);
-            Route::get('fetch-latest-post', [ManagePostsApiController::class, 'fetchLatestPost']);
-            Route::post('like-post', [ManagePostsApiController::class, 'storePostLike']);
-            Route::get('fetch-like-icons', [ManagePostsApiController::class, 'fetchLikeIcons']);
-            Route::post('save-post',[ManagePostsApiController::class,'savePost']);
-            Route::get('/my-joined-groups',[ProfileDetailsApiController::class, 'myJoinedGroups']);
-    
+                // ==================================( Manage Post's )=======================================
+                Route::get('fetch-communities-with-tags','fetchCommunitiesWithTags');
+                Route::post('store-tags','storeTags');
+                Route::post('store-post','storePost');
+                Route::get('fetch-post','fetchPost');
+                Route::get('fetch-latest-post','fetchLatestPost');
+                Route::post('like-post','storePostLike');
+                Route::get('fetch-like-icons','fetchLikeIcons');
+                Route::post('save-post','savePost');
+                Route::post('fetch-like-list','fetchUserLikedList');
 
-            // ===================================( Post Comments )================================
-            Route::post('store-comment',[ManagePostsApiController::class,'commentOnPost']);
-            Route::post('reply-on-comment',[ManagePostsApiController::class,'replyOnComment']);
-            Route::post('delete-comment',[ManagePostsApiController::class,'deleteComment']);
-            Route::post('delete-reply-on-comment',[ManagePostsApiController::class,'deleteReplyOnComment']);
-            Route::post('fetch-comment-with-replied-comment',[ManagePostsApiController::class,'fetchCommentWithRepliedComment']);
+                // ===================================( Post Comments )================================
+                Route::post('store-comment','commentOnPost');
+                Route::post('reply-on-comment','replyOnComment');
+                Route::post('delete-comment','deleteComment');
+                Route::post('delete-reply-on-comment','deleteReplyOnComment');
+                Route::post('fetch-comment-with-replied-comment','fetchCommentWithRepliedComment');
+            });
         });
     });
 });

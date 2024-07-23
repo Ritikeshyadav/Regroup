@@ -13,12 +13,10 @@ class IamPrincipalPostsLikesLink extends Model
     protected $table = 'iam_principal_posts_likes_links';
     protected $guarded = [];
 
-    // protected $append = array('total_like');
-
-    // public function getTotal_LikeAttribute($id)
-    // {
-    //     return $id;
-    // }
+    public function iam_principal()
+    {
+        return $this->belongsTo(IamPrincipal::class,'iam_principal_xid');
+    }
 
     public function likeIcon()
     {
