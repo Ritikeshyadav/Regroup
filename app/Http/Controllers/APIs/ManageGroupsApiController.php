@@ -58,4 +58,41 @@ class ManageGroupsApiController extends Controller
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
+
+
+ /**
+     * Created By : Hritik
+     * Created at : 23 July 2024
+     * Use : To Create Group by user & Business user 
+     */
+
+    
+    public function createGroup(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(),[
+                
+                'manage_group_type_xid' => 'required|exists:manage_group_types,id',
+
+                'background_image' => 'required|mimes:png,jpg,jpeg|max:2048',
+                'group_image' => 'required|mimes:png,jpg,jpeg|max:2048',
+                'title' => 'required',
+                'location' => 'required',
+                'link' => 'required',
+                'description' => 'required',               
+                
+            ]);
+            if($validator->fails())
+            {
+                Log::info('Store Group validation error: '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
+            }
+            $request['iam_principal_xid'] = auth()->user()->id;
+            return $this->manageGroupsApiService->createGroupApiService($request);
+        }catch(Exception $e)    
+        {
+            Log::error('Create Community function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
 }

@@ -128,8 +128,9 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::get('/fetch-groups', [ManageGroupsApiController::class, 'fetchManageGroup']);
             Route::post('/select-groups', [ManageGroupsApiController::class, 'storeSelectedGroup']);
             Route::get('/search-group', [ManageGroupsApiController::class, 'seachGroup']);
-
-
+            
+            
+            Route::post('/create-group', [ManageGroupsApiController::class, 'createGroup']);
 
 
             //========================( Manage Communities API'S)=======================================//

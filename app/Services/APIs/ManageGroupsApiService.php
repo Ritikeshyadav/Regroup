@@ -2,6 +2,7 @@
 
 namespace App\Services\APIs;
 
+use App\Models\IamPrincipalGroupLink;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Validator;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\ManageGroup;
 use App\Models\IamPrincipalManageGroupLink;
 use Exception;
+use Carbon\Carbon;
 
 class ManageGroupsApiService
 {
@@ -40,7 +42,12 @@ class ManageGroupsApiService
                 ->where('is_active', 1)
                 ->get();
             }
-            
+            foreach($data as $key =>$val){
+              
+                $data[$key]['background_image'] = ListingImageUrl('group_background_image', $val->background_image);
+                $data[$key]['group_image'] = ListingImageUrl('group_image', $val->group_image);
+
+            }
 
             if ($data == null) {
                 log::info('manage group data not found');
@@ -114,4 +121,78 @@ class ManageGroupsApiService
         }
 
     }
+
+
+ /*
+     * Created By : Hritik
+     * Created At : 23 july 2024
+     * Use : Store Group  
+     */
+
+     public function createGroupApiService($request)
+     {
+         try {
+ 
+             DB::beginTransaction();
+ 
+               
+             // dd($request->all());
+             $iamprincipal_id = $request->iam_principal_xid;
+ 
+             if ($request->hasFile('background_image')) {
+                 $image = $request->file('background_image');
+                 $groupBackgroundImage = saveSingleImageWithoutCrop($image, 'group_background_image', null);
+             } else {
+                 $groupBackgroundImage = null;
+             }
+ 
+             if ($request->hasFile('group_image')) {
+                 $image = $request->file('group_image');
+                 $groupImage = saveSingleImageWithoutCrop($image, 'group_image', null);
+             } else {
+                 $groupImage = null;
+             }
+ 
+ 
+ 
+             $newGroup = new ManageGroup();
+
+             
+             $newGroup->manage_group_type_xid = $request->manage_group_type_xid;
+ 
+             $newGroup->background_image = $groupBackgroundImage;
+             $newGroup->group_image = $groupImage;
+             $newGroup->title = $request->title;
+             $newGroup->location = $request->location;
+             $newGroup->link = $request->link;
+             $newGroup->description = $request->description;
+
+             $newGroup->created_by  =  $iamprincipal_id;
+          
+ 
+             $newGroup->save();
+             Log::info("Group stored sucessfully");
+ 
+             //join community =
+             IamPrincipalManageGroupLink::create([
+                 'iam_principal_xid' => $iamprincipal_id,
+                 'manage_group_xid' => $newGroup->id,
+                 'joined_at' => Carbon::now(),
+                 'created_by' =>  $iamprincipal_id,
+                 'is_admin' =>  1
+             ]);
+ 
+             Log::info("Group linked stored sucessfully");
+ 
+             DB::commit();
+             return jsonResponseWithSuccessMessageApi(__('success.save_data'), [], 201);
+         } catch (Exception $e) {
+             DB::rollBack();
+             Log::error('store user select community function failed: ' . $e->getMessage());
+             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+         }
+ 
+     }
+
+    
 }

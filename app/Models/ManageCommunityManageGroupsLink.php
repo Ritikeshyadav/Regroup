@@ -6,21 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class IamPrincipalManageGroupLink extends Model
+class ManageCommunityManageGroupsLink extends Model
 {
     use HasFactory,SoftDeletes;
 
-    protected $table = 'iam_principal_manage_group_links';
+    protected $table = 'manage_community_and_groups_links';
 
     protected $guarded = [];
+
+
     public function groupData()
     {
         return $this->hasOne(ManageGroup::class, 'id', 'manage_group_xid');
     }
-    public function iamPrincipalData()
+    public function communityData()
     {
-        return $this->hasOne(IamPrincipal::class, 'id', 'iam_principal_xid');
+        return $this->hasOne(ManageCommunity::class, 'id', 'manage_community_xid');
     }
-
-    
 }
+
