@@ -167,6 +167,24 @@ class ProfileDetailsApiController extends Controller
         }
     }
 
+
+    public function myJoinedGroups()
+    {
+        try{
+            $token = readHeaderToken();
+            if($token)
+            {
+                return $this->ProfileDetailsApiService->myJoinedGroupsApiSerice($token['sub']);
+            }
+            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch myJoinedGroups function failed: '. $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    
     /*
      * Created By : Ritikesh Yadav
      * Created At : 09 July 2024

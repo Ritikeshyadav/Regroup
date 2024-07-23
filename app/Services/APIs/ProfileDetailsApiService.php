@@ -6,6 +6,7 @@ use App\Models\Abilities;
 use App\Models\IamPrincipal;
 use App\Models\IamPrincipalBlockedProfile;
 use App\Models\IamPrincipalCertifications;
+use App\Models\IamPrincipalManageGroupLink;
 use App\Models\IamPrincipalManageSubGroupsLink;
 use App\Models\IamRole;
 use App\Models\IamPrincipalFollowers;
@@ -228,6 +229,14 @@ class ProfileDetailsApiService
                     }
                 ])
                 ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
+
+                $myJoinedGroups = IamPrincipalManageGroupLink::select('id', 'iam_principal_xid', 'manage_group_xid')
+                ->with([
+                    'groupData' => function ($query) {
+                        $query->select('id', 'title', 'group_image'); // Replace with the columns you need
+                    }
+                ])
+                ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
             // dd( $myJoinedSubGroups );
 
 
@@ -271,6 +280,7 @@ class ProfileDetailsApiService
                 'follows' => $this->fetchFollowers($iamprincipal_id),
                 'timelines' => $getTimelines,
                 'account_visibility' => $data->is_account_visibility,
+                'my_joined_groups'=>$myJoinedGroups,
                 'my_joined_subgroups' => $myJoinedSubGroups,
                 'certifications' => $userCertifications,
                 'days_before_joined' => $diffForHumans
@@ -282,6 +292,37 @@ class ProfileDetailsApiService
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
+
+ /* 
+     * Created By : Hritik
+     * Created At : 22 July 2024
+     * Use : To fetch My joined Group service
+     */
+    public function myJoinedGroupsApiSerice($iamprincipal_id)
+    {
+        try {
+            $data = IamPrincipal::with('interestsLink.interest')->where('id', $iamprincipal_id)->first();
+          
+                $myJoinedGroups = IamPrincipalManageGroupLink::select('id', 'iam_principal_xid', 'manage_group_xid')
+                ->with([
+                    'groupData' => function ($query) {
+                        $query->select('id', 'title', 'group_image'); // Replace with the columns you need
+                    }
+                ])
+                ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
+            // dd( $myJoinedSubGroups );
+
+
+          
+
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $myJoinedGroups, 200);
+        } catch (Exception $e) {
+            Log::error('Fetch Joined Groups profile service function failes: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    
 
     /* 
      * Created By : Ritikesh Yadav
@@ -383,22 +424,22 @@ class ProfileDetailsApiService
                 'blockedProfile',
                 function ($query) use ($search) {
                     $query->when($search != null, function ($q) use ($search) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                         $q->where('user_name', 'like', '%' . $search . '%');
                         $q->orWhere('full_name', 'like', '%' . $search . '%');
                     }, function ($q) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                     });
                 }
             )
                 ->with([
                     'blockedProfile' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                         });
                     }
                 ])
@@ -427,21 +468,21 @@ class ProfileDetailsApiService
             $search = $request->search;
             $followers = IamPrincipalFollowers::whereHas('follower', function ($query) use ($search) {
                 $query->when($search != null, function ($q) use ($search) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                     $q->where('user_name', 'like', '%' . $search . '%');
                     $q->orWhere('full_name', 'like', '%' . $search . '%');
                 }, function ($q) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                 });
             })
                 ->with([
                     'follower' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                         });
                     }
                 ])
@@ -472,21 +513,21 @@ class ProfileDetailsApiService
             $search = $request->search;
             $following = IamPrincipalFollowers::whereHas('following', function ($query) use ($search) {
                 $query->when($search != null, function ($q) use ($search) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                     $q->where('user_name', 'like', '%' . $search . '%');
                     $q->orWhere('full_name', 'like', '%' . $search . '%');
                 }, function ($q) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                 });
             })
                 ->with([
                     'following' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
                         });
                     }
                 ])

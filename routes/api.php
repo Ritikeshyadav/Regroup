@@ -136,9 +136,13 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::get('/fetch-communities', [ManageCommunitiesApiController::class, 'fetchManageCommunities']);
             Route::post('/select-communities', [ManageCommunitiesApiController::class, 'storeSelectedCommunity']);
             Route::get('/search-community', [ManageCommunitiesApiController::class, 'searchCommunity']);
+            Route::post('/create-community', [ManageCommunitiesApiController::class, 'createCommunity']);
+            Route::get('/edit-community', [ManageCommunitiesApiController::class, 'editCommunity']);
 
-
-
+            Route::post('/update-community', [ManageCommunitiesApiController::class, 'updateCommunity']);
+            
+            
+            
             // ================================send mail============================//
             Route::post('/send-mail', [ManageCommunitiesApiController::class, 'sendMail']);
 
@@ -191,6 +195,8 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('like-post', [ManagePostsApiController::class, 'storePostLike']);
             Route::get('fetch-like-icons', [ManagePostsApiController::class, 'fetchLikeIcons']);
             Route::post('save-post',[ManagePostsApiController::class,'savePost']);
+            Route::get('/my-joined-groups',[ProfileDetailsApiController::class, 'myJoinedGroups']);
+    
 
             // ===================================( Post Comments )================================
             Route::post('store-comment',[ManagePostsApiController::class,'commentOnPost']);
