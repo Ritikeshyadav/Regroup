@@ -19,7 +19,7 @@ use App\Http\Controllers\APIs\ProfileDetailsApiController;
 
 use App\Http\Controllers\APIs\ManageGroupsApiController;
 use App\Http\Controllers\APIs\ManageCommunitiesApiController;
-
+use App\Http\Controllers\APIs\ManagePostsApiController;
 use App\Http\Controllers\APIs\TimeLineController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,15 +44,15 @@ Route::middleware(['BasicAuthApi'])->group(function () {
         Route::post('/forgot-password', [AuthApiController::class, 'forgotPassword']);
         Route::post('/forgot-password/verify-otp', [AuthApiController::class, 'verifyOtpForgotPassword']);
         Route::post('/reset-password', [AuthApiController::class, 'resetPassword']);
-        
-        
+
+
         Route::post('/resend-otp', [AuthApiController::class, 'resendOtp']);
 
         Route::post('/sign-in-with-google-login', [GoogleLoginApiController::class, 'signInWithGoogle']);
         Route::post('/apple-login', [AppleLoginApiController::class, 'appleLogin'])->name('apple.login'); //not in use
         Route::post('/apple-login-or-registration', [AppleLoginApiController::class, 'appleRegistration'])->name('apple-login-or-registration');
 
-        
+
         Route::post('/facebook-login', [FacebookLoginApiController::class, 'facebookLogin'])->name('facebook.login');
     });
     Route::group(['middleware' => ['wdi.jwt.verify']], function () {
@@ -60,11 +60,11 @@ Route::middleware(['BasicAuthApi'])->group(function () {
 
 
             Route::post('/logout', [AuthApiController::class, 'logout']);
-            
+
             //update User Account type when Register with apple of google
             Route::post('/update-user-account-type', [AuthApiController::class, 'updateUserAccountType']);
 
-            
+
             //get AUth User 
             Route::get('/get-auth-user-data', [AuthApiController::class, 'getAuthUserDetails']);
 
@@ -72,7 +72,7 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/add_profile', [ProfileDetailsApiController::class, 'addProfile']);
 
             // fetch profile
-            Route::get('/fetch-profile',[ProfileDetailsApiController::class, 'fetchProfile']);
+            Route::get('/fetch-profile', [ProfileDetailsApiController::class, 'fetchProfile']);
 
 
             //Business user Tell Us about business API - created by hritik on 09-July,2024
@@ -80,12 +80,12 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/update-business-profile-step-1', [BusinessUserProfileController::class, 'updateBusinessProfile']);
 
             // fetch or update bussiness profile
-            Route::get('/fetch-business-profile',[BusinessUserProfileController::class, 'fetchBusinessProfile']);
-            Route::post('/update-business-profile',[BusinessUserProfileController::class, 'updateBusinessProfileFunction']);
+            Route::get('/fetch-business-profile', [BusinessUserProfileController::class, 'fetchBusinessProfile']);
+            Route::post('/update-business-profile', [BusinessUserProfileController::class, 'updateBusinessProfileFunction']);
 
             // update password
-            Route::post('/update-password-send-otp',[BusinessUserProfileController::class, 'updatePasswordSendMailOtp']);
-            Route::post('/verify-update-password-otp',[BusinessUserProfileController::class, 'verifyUpdatePasswordOtp']);
+            Route::post('/update-password-send-otp', [BusinessUserProfileController::class, 'updatePasswordSendMailOtp']);
+            Route::post('/verify-update-password-otp', [BusinessUserProfileController::class, 'verifyUpdatePasswordOtp']);
 
             //Store Activities
             Route::post('/store_activities', [ManageActivitiesApiController::class, 'storeActivities']);
@@ -96,27 +96,27 @@ Route::middleware(['BasicAuthApi'])->group(function () {
 
 
 
-        //======================( Manage Activities API'S  )==============================//
-        Route::post('/add-activities', [ManageActivitiesApiController::class, 'addManageActivities']);
-        Route::get('/fetch-activities', [ManageActivitiesApiController::class, 'fetchManageActivities']);
+            //======================( Manage Activities API'S  )==============================//
+            Route::post('/add-activities', [ManageActivitiesApiController::class, 'addManageActivities']);
+            Route::get('/fetch-activities', [ManageActivitiesApiController::class, 'fetchManageActivities']);
 
 
-        //======================( Profile Details API'S  )==============================//
-        // Route::post('/add-profile', [ProfileDetailsApiController::class, 'addProfile']);
-        Route::get('/fetch-role', [ProfileDetailsApiController::class, 'fetchRole']);
-        Route::post('/update-profile', [ProfileDetailsApiController::class, 'updateProfile']);
-        Route::post('/delete-profile', [ProfileDetailsApiController::class, 'deleteProfile']);
-        Route::post('/block-profile', [ProfileDetailsApiController::class, 'blockProfile']);
-        Route::post('/share-profile', [ProfileDetailsApiController::class, 'shareProfile']);
-        Route::get('/fetch-blocked-profile', [ProfileDetailsApiController::class, 'fetchBlockedProfile']);
-        Route::post('/delete-my-account', [ProfileDetailsApiController::class, 'deleteMyAccount']);
-        Route::post('/account-visibility', [ProfileDetailsApiController::class, 'accountVisibility']);
+            //======================( Profile Details API'S  )==============================//
+            // Route::post('/add-profile', [ProfileDetailsApiController::class, 'addProfile']);
+            Route::get('/fetch-role', [ProfileDetailsApiController::class, 'fetchRole']);
+            Route::post('/update-profile', [ProfileDetailsApiController::class, 'updateProfile']);
+            Route::post('/delete-profile', [ProfileDetailsApiController::class, 'deleteProfile']);
+            Route::post('/block-profile', [ProfileDetailsApiController::class, 'blockProfile']);
+            Route::post('/share-profile', [ProfileDetailsApiController::class, 'shareProfile']);
+            Route::get('/fetch-blocked-profile', [ProfileDetailsApiController::class, 'fetchBlockedProfile']);
+            Route::post('/delete-my-account', [ProfileDetailsApiController::class, 'deleteMyAccount']);
+            Route::post('/account-visibility', [ProfileDetailsApiController::class, 'accountVisibility']);
 
             // ============================( Follow API's)===================================//
-            Route::get('/fetch-followers',[ProfileDetailsApiController::class, 'fetchFollowers']);
-            Route::get('/fetch-following',[ProfileDetailsApiController::class, 'fetchFollowings']);
-            Route::post('/follow-user',[ProfileDetailsApiController::class, 'followUsers']);
-            Route::post('/remove-follower',[ProfileDetailsApiController::class, 'removeFollower']);
+            Route::get('/fetch-followers', [ProfileDetailsApiController::class, 'fetchFollowers']);
+            Route::get('/fetch-following', [ProfileDetailsApiController::class, 'fetchFollowings']);
+            Route::post('/follow-user', [ProfileDetailsApiController::class, 'followUsers']);
+            Route::post('/remove-follower', [ProfileDetailsApiController::class, 'removeFollower']);
 
 
             //========================( Manage Interest API'S)=======================================//
@@ -129,7 +129,7 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/select-groups', [ManageGroupsApiController::class, 'storeSelectedGroup']);
             Route::get('/search-group', [ManageGroupsApiController::class, 'seachGroup']);
 
-            
+
 
 
             //========================( Manage Communities API'S)=======================================//
@@ -137,54 +137,67 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/select-communities', [ManageCommunitiesApiController::class, 'storeSelectedCommunity']);
             Route::get('/search-community', [ManageCommunitiesApiController::class, 'searchCommunity']);
 
-            
-            
+
+
             // ================================send mail============================//
-            Route::post('/send-mail',[ManageCommunitiesApiController::class,'sendMail']);
+            Route::post('/send-mail', [ManageCommunitiesApiController::class, 'sendMail']);
 
             // ===========================( Manage CMS Api)===============================//
-            Route::get('/fetch-faqs',[ManageCMSController::class, 'fetchFAQs']);
-            Route::post('/contact-us',[ManageCMSController::class, 'storeContactUs']);
-            Route::post('/bug-report',[ManageCMSController::class, 'storeBugReport']);
-            Route::get('/fetch-privacy-policy',[ManageCMSController::class, 'fetchPrivacyPolicy']);
-            Route::get('/fetch-terms-and-condition',[ManageCMSController::class, 'fetchTermsAndCondition']);
+            Route::get('/fetch-faqs', [ManageCMSController::class, 'fetchFAQs']);
+            Route::post('/contact-us', [ManageCMSController::class, 'storeContactUs']);
+            Route::post('/bug-report', [ManageCMSController::class, 'storeBugReport']);
+            Route::get('/fetch-privacy-policy', [ManageCMSController::class, 'fetchPrivacyPolicy']);
+            Route::get('/fetch-terms-and-condition', [ManageCMSController::class, 'fetchTermsAndCondition']);
 
             // ===============================( Notification's )=============================== //
-            Route::get('/fetch-notification-settings',[ProfileDetailsApiController::class, 'fetchNotificationSetting']);
-            Route::post('/update-notification-settings',[ProfileDetailsApiController::class, 'updateNotificationSetting']);
-            
+            Route::get('/fetch-notification-settings', [ProfileDetailsApiController::class, 'fetchNotificationSetting']);
+            Route::post('/update-notification-settings', [ProfileDetailsApiController::class, 'updateNotificationSetting']);
+
             // ===============================( Timeline's )=============================== //
-            Route::post('/create-timeline',[TimeLineController::class, 'createTimeLine']);
-            Route::get('/list-of-abilities',[TimeLineController::class, 'listOfAbilities']);
-            Route::get('/get-timeline-data',[TimeLineController::class, 'getsingleTimelineData']);
-            Route::post('/update-timeline',[TimeLineController::class, 'updateTimeline']);
-            Route::post('/delete-timeline',[TimeLineController::class, 'deleteTimeline']);
+            Route::post('/create-timeline', [TimeLineController::class, 'createTimeLine']);
+            Route::get('/list-of-abilities', [TimeLineController::class, 'listOfAbilities']);
+            Route::get('/get-timeline-data', [TimeLineController::class, 'getsingleTimelineData']);
+            Route::post('/update-timeline', [TimeLineController::class, 'updateTimeline']);
+            Route::post('/delete-timeline', [TimeLineController::class, 'deleteTimeline']);
 
-            
-             // ===============================( Account Session's )=============================== //
-             Route::post('/store-account-session',[AccountSessionController::class, 'storeAccountSession']);
-             Route::get('/get-account-session',[AccountSessionController::class, 'getAccountSessions']);
- 
-        // ===============================( Guest View of Individual User's )=============================== //
-            Route::get('/get-guest-view-of-individual-user-profile',[IndividualUserGuestViewController::class, 'getIndividualUserGuestViewData']);
-            Route::get('/get-guest-user-followers',[IndividualUserGuestViewController::class, 'getFollowersOfGuestUser']);
-            Route::get('/get-guest-user-following',[IndividualUserGuestViewController::class, 'getFollowingOfGuestUser']);
 
-          // ===============================( Guest View of Individual User's )=============================== //
-          Route::get('/get-guest-view-of-individual-user-profile',[IndividualUserGuestViewController::class, 'getIndividualUserGuestViewData']);
+            // ===============================( Account Session's )=============================== //
+            Route::post('/store-account-session', [AccountSessionController::class, 'storeAccountSession']);
+            Route::get('/get-account-session', [AccountSessionController::class, 'getAccountSessions']);
 
-          Route::get('/get-guest-user-followers',[IndividualUserGuestViewController::class, 'getFollowersOfGuestUser']);
-          Route::get('/get-guest-user-following',[IndividualUserGuestViewController::class, 'getFollowingOfGuestUser']);
+            // ===============================( Guest View of Individual User's )=============================== //
+            Route::get('/get-guest-view-of-individual-user-profile', [IndividualUserGuestViewController::class, 'getIndividualUserGuestViewData']);
+            Route::get('/get-guest-user-followers', [IndividualUserGuestViewController::class, 'getFollowersOfGuestUser']);
+            Route::get('/get-guest-user-following', [IndividualUserGuestViewController::class, 'getFollowingOfGuestUser']);
 
-          Route::get('/get-guest-view-of-business-user-profile',[IndividualUserGuestViewController::class, 'getBusinessUserGuestViewData']);
+            // ===============================( Guest View of Individual User's )=============================== //
+            Route::get('/get-guest-view-of-individual-user-profile', [IndividualUserGuestViewController::class, 'getIndividualUserGuestViewData']);
+
+            Route::get('/get-guest-user-followers', [IndividualUserGuestViewController::class, 'getFollowersOfGuestUser']);
+            Route::get('/get-guest-user-following', [IndividualUserGuestViewController::class, 'getFollowingOfGuestUser']);
+
+            Route::get('/get-guest-view-of-business-user-profile', [IndividualUserGuestViewController::class, 'getBusinessUserGuestViewData']);
             // ===============================( Certifications )=============================== //
 
-            Route::post('/store-certification',[ProfileDetailsApiController::class, 'storeCertification']);
-            Route::post('/delete-certification',[ProfileDetailsApiController::class, 'deleteCertification']);
+            Route::post('/store-certification', [ProfileDetailsApiController::class, 'storeCertification']);
+            Route::post('/delete-certification', [ProfileDetailsApiController::class, 'deleteCertification']);
 
-    
+            // ==================================( Manage Post's )=======================================
+            Route::get('fetch-communities-with-tags', [ManagePostsApiController::class, 'fetchCommunitiesWithTags']);
+            Route::post('store-tags', [ManagePostsApiController::class, 'storeTags']);
+            Route::post('store-post', [ManagePostsApiController::class, 'storePost']);
+            Route::get('fetch-post', [ManagePostsApiController::class, 'fetchPost']);
+            Route::get('fetch-latest-post', [ManagePostsApiController::class, 'fetchLatestPost']);
+            Route::post('like-post', [ManagePostsApiController::class, 'storePostLike']);
+            Route::get('fetch-like-icons', [ManagePostsApiController::class, 'fetchLikeIcons']);
+            Route::post('save-post',[ManagePostsApiController::class,'savePost']);
 
-          
+            // ===================================( Post Comments )================================
+            Route::post('store-comment',[ManagePostsApiController::class,'commentOnPost']);
+            Route::post('reply-on-comment',[ManagePostsApiController::class,'replyOnComment']);
+            Route::post('delete-comment',[ManagePostsApiController::class,'deleteComment']);
+            Route::post('delete-reply-on-comment',[ManagePostsApiController::class,'deleteReplyOnComment']);
+            Route::post('fetch-comment-with-replied-comment',[ManagePostsApiController::class,'fetchCommentWithRepliedComment']);
         });
     });
 });

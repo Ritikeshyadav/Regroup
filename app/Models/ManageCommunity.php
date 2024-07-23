@@ -13,4 +13,9 @@ class ManageCommunity extends Model
     protected $table = 'manage_communities';
 
     protected $fillable = ['community_profile_photo','community_banner_image','community_name','community_location','community_description','community_type_xid','activity_xid','is_active','created_by','modified_by'];
+
+    public function tags()
+    {
+        return $this->hasMany(ManageTags::class,'manage_community_xid','id');
+    }
 }
