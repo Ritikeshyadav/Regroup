@@ -187,6 +187,8 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/store-certification', [ProfileDetailsApiController::class, 'storeCertification']);
             Route::post('/delete-certification', [ProfileDetailsApiController::class, 'deleteCertification']);
             Route::get('/my-joined-groups',[ProfileDetailsApiController::class, 'myJoinedGroups']);              
+            Route::get('/my-certificates',[ProfileDetailsApiController::class, 'myCertificateLists']);              
+            
             
             Route::controller(ManagePostsApiController::class)->group(function(){
 

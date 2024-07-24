@@ -209,7 +209,7 @@ class ProfileDetailsApiService
      * Created At : 09 July 2024
      * Use : To fetch profile service
      */
-    public function fetchProfileService($iamprincipal_id)
+    public function fetchProfileService($iamprincipal_id, $myId)
     {
         try {
             $data = IamPrincipal::with('interestsLink.interest')->where('id', $iamprincipal_id)->first();
@@ -265,6 +265,13 @@ class ProfileDetailsApiService
             $date2 = Carbon::parse($date2);
 
             $diffForHumans = $date2->diffInDays($date1);
+            $isIamFollowing=0;
+          
+            if($myId && $myId != null){
+
+                //iamprincipal_id  means Guest Account in GuestUser Service
+                $isIamFollowing =  IamPrincipalFollowers::where('iam_principal_xid', $myId)->where('following_iam_principal_xid',$iamprincipal_id)->first() ? 1: 0;
+            }
 
 
             $formatData = (array) [
@@ -289,7 +296,8 @@ class ProfileDetailsApiService
                 'my_joined_groups' => $myJoinedGroups,
                 // 'my_joined_subgroups' => $myJoinedSubGroups,
                 'certifications' => $userCertifications,
-                'days_before_joined' => $diffForHumans
+                'days_before_joined' => $diffForHumans,
+                'is_iam_following_to_guest_user'=> $isIamFollowing
             ];
 
             return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $formatData, 200);
@@ -304,9 +312,16 @@ class ProfileDetailsApiService
      * Created At : 22 July 2024
      * Use : To fetch My joined Group service
      */
-    public function myJoinedGroupsApiSerice($iamprincipal_id)
+    public function myJoinedGroupsApiSerice($request)
     {
         try {
+
+            $userId = $request->query('user_id');
+
+            if($userId == null){
+                return jsonResponseWithErrorMessageApi("Kindly Pass User Id in Query Params", 500);
+
+            }
 
             $myJoinedGroups = IamPrincipalManageGroupLink::select('id', 'iam_principal_xid', 'manage_group_xid')
                 ->with([
@@ -314,7 +329,7 @@ class ProfileDetailsApiService
                         $query->select('id', 'title', 'group_image'); // Replace with the columns you need
                     }
                 ])
-                ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
+                ->where('iam_principal_xid', $userId )->orderByDesc('id')->get();
             // dd( $myJoinedSubGroups );
             foreach ($myJoinedGroups as $key => $item) {
                 if ($item->groupData) {
