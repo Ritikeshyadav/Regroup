@@ -41,7 +41,8 @@ class IndividualUserGuestViewService
 
             }
             //the below code is Reusable From Individual -ProfileDetailsApiService
-            $getIndividualUserGuestViewData = $this->individualprofileDetailService->fetchProfileService($guestUserId);
+            $getIndividualUserGuestViewData = $this->individualprofileDetailService->fetchProfileService($guestUserId, $request->iam_principal_id);
+           
             return $getIndividualUserGuestViewData;
            
             // return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $getAccountSessions, 200);
