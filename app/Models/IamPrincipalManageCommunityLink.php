@@ -20,5 +20,10 @@ class IamPrincipalManageCommunityLink extends Model
     {
         return $this->hasOne(ManageCommunity::class, 'id', 'manage_community_xid');
     }
+
+    public function community()
+    {
+        return $this->belongsTo(ManageCommunity::class,'manage_community_xid');
+    }
     
 }

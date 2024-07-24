@@ -13,4 +13,9 @@ class ManageTags extends Model
     protected $table = 'manage_tags';
 
     protected $guarded = [];
+
+    public function community()
+    {
+        return $this->belongsTo(ManageCommunity::class,'manage_community_xid');
+    }
 }
