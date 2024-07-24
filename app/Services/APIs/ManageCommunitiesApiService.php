@@ -166,7 +166,8 @@ class ManageCommunitiesApiService
             $newCommunity->community_description = $request->community_description;
             $newCommunity->community_type_xid = $request->community_type_xid;
             $newCommunity->activity_xid = $request->activity_xid;
-
+            $newCommunity->created_by  =  $iamprincipal_id;
+          
 
             $newCommunity->save();
             Log::info("Community stored sucessfully");
@@ -176,6 +177,7 @@ class ManageCommunitiesApiService
                 'iam_principal_xid' => $iamprincipal_id,
                 'manage_community_xid' => $newCommunity->id,
                 'joined_at' => Carbon::now(),
+                'created_by' =>  $iamprincipal_id,
                 'is_admin' => 1
             ]);
 
@@ -206,7 +208,7 @@ class ManageCommunitiesApiService
             $iamprincipal_id = $request->iam_principal_xid;
             $communityId = $request->community_id;
 
-            
+
             // dd($request->all(),$iamprincipal_id);
             $communityData = ManageCommunity::where('id', $communityId)->first();
 
