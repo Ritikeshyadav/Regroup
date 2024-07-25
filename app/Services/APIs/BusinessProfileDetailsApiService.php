@@ -137,6 +137,7 @@ class BusinessProfileDetailsApiService
                     'business_type_xid',
                     'business_owner_name',
                     'business_name',
+                    'business_username',
                     'business_location',
                     'business_contact_number',
                     'business_email',
@@ -146,7 +147,8 @@ class BusinessProfileDetailsApiService
                     'business_logo',
                     'tags',
                     'banner_image',
-                    'business_profile_image'
+                    'business_profile_image',
+                    'bio'
                 )
                 ->where('iam_principal_xid', $iamprincipal_id)
                 ->first();
@@ -154,7 +156,7 @@ class BusinessProfileDetailsApiService
             $data->business_logo = ListingImageUrl('business_logo', $data->business_logo);
             $data->banner_image = ListingImageUrl('banner_image', $data->banner_image);
             $data->business_profile_image = ListingImageUrl('business_profile', $data->business_profile_image);
-
+            $isIamFollowing =0;
 
             if ($myId && $myId != null) {
 
