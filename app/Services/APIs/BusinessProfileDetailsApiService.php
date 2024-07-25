@@ -129,11 +129,17 @@ class BusinessProfileDetailsApiService
     public function fetchBusinessProfileService($iamprincipal_id)
     {
         try{
-            $data = IamPrincipalBusinessUserLink::with('businessType')
-            ->select('id','business_type_xid','business_owner_name','business_name','business_location','business_contact_number','business_email','business_handle','website_link','google_review_link','business_logo','tags','banner_image')
+            $data = IamPrincipalBusinessUserLink::with('businessType','iamPrincipalData')
+            ->select('id','business_type_xid','business_owner_name','business_name','business_location','business_contact_number','business_email','business_handle','website_link','google_review_link','business_logo','tags','banner_image','business_profile_image')
             ->where('iam_principal_xid',$iamprincipal_id)
             ->first();
+            $data->business_logo = ListingImageUrl('business_logo',$data->business_logo);
+            $data->banner_image = ListingImageUrl('banner_image',$data->banner_image);
+            $data->business_profile_image = ListingImageUrl('business_profile',$data->business_profile_image);
+            
+            
             $data['follows'] = (new ProfileDetailsApiService)->fetchFollowers($iamprincipal_id);
+
             if ($data == null) {
                 Log::info('business profile data not found.');
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
