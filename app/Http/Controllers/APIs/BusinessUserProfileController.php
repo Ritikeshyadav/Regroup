@@ -99,6 +99,7 @@ class BusinessUserProfileController extends Controller
     {
         try {
             $token = readHeaderToken();
+            // dd($token['sub']);
             return $token ? $this->BusinessProfileDetailsApiService->fetchBusinessProfileService($token['sub']) : jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
         } catch (Exception $e) {
             Log::error('Fetch bussiness profile function failed: ' . $e->getMessage());

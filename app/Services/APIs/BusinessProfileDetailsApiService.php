@@ -40,7 +40,7 @@ class BusinessProfileDetailsApiService
 
 
             $profileData = IamPrincipalBusinessUserLink::updateOrCreate(
-                ['id' => $iamprincipal_id],
+                ['iam_principal_xid' => $iamprincipal_id],
                 [
                     'business_type_xid' => $request->business_type_xid,
                     'business_owner_name' => $request->business_owner_name,
@@ -91,7 +91,7 @@ class BusinessProfileDetailsApiService
 
 
             $profileData = IamPrincipalBusinessUserLink::updateOrCreate(
-                ['id' => $iamprincipal_id],
+                ['iam_principal_xid' => $iamprincipal_id],
                 [
                     'business_contact_number' => $request->business_contact_number,
                     'business_email' => $request->business_email,
@@ -130,9 +130,13 @@ class BusinessProfileDetailsApiService
     {
         try{
             $data = IamPrincipalBusinessUserLink::with('businessType','iamPrincipalData')
-            ->select('id','business_type_xid','business_owner_name','business_name','business_location','business_contact_number','business_email','business_handle','website_link','google_review_link','business_logo','tags','banner_image','business_profile_image')
+            ->select('id','iam_principal_xid','business_type_xid','business_owner_name',
+            'business_name','business_location','business_contact_number','business_email',
+            'business_handle','website_link','google_review_link','business_logo','tags',
+            'banner_image','business_profile_image')
             ->where('iam_principal_xid',$iamprincipal_id)
             ->first();
+           
             $data->business_logo = ListingImageUrl('business_logo',$data->business_logo);
             $data->banner_image = ListingImageUrl('banner_image',$data->banner_image);
             $data->business_profile_image = ListingImageUrl('business_profile',$data->business_profile_image);
