@@ -135,6 +135,7 @@ class BusinessProfileDetailsApiService
                     'id',
                     'iam_principal_xid',
                     'business_type_xid',
+                    'founded_on',
                     'business_owner_name',
                     'business_name',
                     'business_username',
