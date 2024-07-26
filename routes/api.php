@@ -19,6 +19,7 @@ use App\Http\Controllers\APIs\ProfileDetailsApiController;
 
 use App\Http\Controllers\APIs\ManageGroupsApiController;
 use App\Http\Controllers\APIs\ManageCommunitiesApiController;
+use App\Http\Controllers\APIs\ManagePinnedApiController;
 use App\Http\Controllers\APIs\ManagePostsApiController;
 use App\Http\Controllers\APIs\TimeLineController;
 use Illuminate\Support\Facades\Route;
@@ -209,6 +210,12 @@ Route::middleware(['BasicAuthApi'])->group(function () {
                 Route::post('delete-comment','deleteComment');
                 Route::post('delete-reply-on-comment','deleteReplyOnComment');
                 Route::post('fetch-comment-with-replied-comment','fetchCommentWithRepliedComment');
+            });
+
+            Route::controller(ManagePinnedApiController::class)->group(function(){
+                Route::get('fetch-pinned-detail','fetchPinnedDetails');
+                Route::get('fetch-communities-tags-to-pin','fetchDataForPinned');
+                Route::post('pin-unpin','pinUnpin');
             });
         });
     });
