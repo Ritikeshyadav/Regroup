@@ -126,17 +126,33 @@ class ManagePostApiService
     /**
      * Created By : Ritikesh Yadav
      * Created At : 22 july 2024
+     * Use : To fetch latest post
+     */
+    public function fetchLatestPostService()
+    {
+        try{
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$this->getData(false),200);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch post service failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 22 july 2024
      * Use : To fetch post
      */
     public function getData($feed = false)
     {
         try{
-            // if($feed == true)
-            // {
-            //     $tags_xid = IamPrincipalPinnedLink::where('iam_principal_xid',auth()->user()->id)->get('manage_tags_xid');
-            //     $communities_xid = IamPrincipalPinnedLink::where('iam_principal_xid',auth()->user()->id)->get('manage_communities_xid');
-            //     $pin_user_xid = IamPrincipalPinnedLink::where('iam_principal_xid',auth()->user()->id)->get('pin_iam_principal_xid');
-            // }
+            if($feed)
+            {
+                $tags_xid = IamPrincipalPinnedLink::where('iam_principal_xid',auth()->user()->id)->whereNotNull('manage_tags_xid')->pluck('manage_tags_xid');
+                $communities_xid = IamPrincipalPinnedLink::where('iam_principal_xid',auth()->user()->id)->whereNotNull('manage_communities_xid')->pluck('manage_communities_xid');
+                $pin_user_xid = IamPrincipalPinnedLink::where('iam_principal_xid',auth()->user()->id)->whereNotNull('pin_iam_principal_xid')->pluck('pin_iam_principal_xid');
+            }
 
             $followedCommunityId = IamPrincipalManageCommunityLink::where('iam_principal_xid',auth()->user()->id)->pluck('manage_community_xid');
             if($followedCommunityId == null)
@@ -147,12 +163,13 @@ class ManagePostApiService
                 $q->select('id','user_name','full_name','profile_photo');
             }])
             ->whereIn('post_in',$followedCommunityId)
-            ->select('id','id as likecount','id as is_i_liked','id as total_comment','id as total_save','iam_principal_xid','caption','image','manage_tags_xids','post_as','cta_title','cta_link','created_at')
+            ->select('id','id as likecount','id as tags_xid','id as is_i_liked','id as total_comment','id as total_save','iam_principal_xid','post_in','caption','image','manage_tags_xids','post_as','cta_title','cta_link','created_at')
             ->get();
             if($data == null)
             {
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found'),[],200);
             }
+
             foreach($data as $post)
             {
                 $tag_ids = json_decode($post->manage_tags_xids);
@@ -166,11 +183,38 @@ class ManagePostApiService
                 }
                 $post->tag_names = $tag_names;
             }
-            // if($feed == true)
-            // {
-            //     $data = collect($data)->orderBy;
-            // }
-            return collect($data);
+            
+            if($feed)
+            {
+                // created empty array for adding key with value's
+                $with_Pin_Data = [];
+
+                // Getting first pinned ( communities ) for fetch first post of user following community
+                $with_Pin_Data['pinned_community_post'] = $data->whereIn('post_in',$communities_xid);
+                
+                // Getting second pinned of ( user post ) with not including pinned ( communities )
+                $with_Pin_Data['pinned_user_post'] = $data->whereIn('iam_principal_xid',$pin_user_xid)->whereNotIn('post_in',$communities_xid);
+                
+                // Getting third pinned of ( tags post ) with not including pinned ( Communities and User's )
+                if($tags_xid != null)
+                {
+                    $tags_count = 0;
+                    foreach($data->whereNotIn('post_in',$communities_xid)->whereNotIn('iam_principal_xid',$pin_user_xid) as $tag_data)
+                    {
+                        foreach($tags_xid as $tagId)
+                        {
+                            if(in_array($tagId, $tag_data->tags_xid))
+                            {
+                                $with_Pin_Data['pinned_tags_post'][$tags_count++] = $tag_data;
+                            }
+                        }
+                    }
+                }else{
+                    $with_Pin_Data['pinned_tags_post'][0] = [];
+                }
+                return $with_Pin_Data;
+            }
+            return collect($data)->sortByDesc('created_at');
         }catch(Exception $e)
         {
             Log::error('Get data service failed: '.$e->getMessage());

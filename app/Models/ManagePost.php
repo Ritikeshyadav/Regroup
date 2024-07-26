@@ -13,7 +13,7 @@ class ManagePost extends Model
     protected $table = 'manage_posts';
     protected $guarded = [];
 
-    protected $appends = array('likecount','is_i_liked','likeIcon','total_comment','total_save');
+    protected $appends = array('likecount','is_i_liked','likeIcon','total_comment','total_save','tags_xid');
 
     public function iam_principal()
     {
@@ -78,5 +78,15 @@ class ManagePost extends Model
     public function getTotalSaveAttribute($id)
     {
         return IamPrincipalSavedPost::where(['manage_posts_xid'=>$this->id])->count();
+    }
+
+    /**
+     * Created By : Ritikesh Yadav
+     * Created At : 25 july 2024
+     * Use : added attribute to get tags xid in array form 
+     */
+    public function getTagsXidAttribute($id)
+    {
+        return json_decode(ManagePost::where(['id'=>$this->id])->value('manage_tags_xids'));
     }
 }

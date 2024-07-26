@@ -94,7 +94,7 @@ class ManagePostsApiController extends Controller
     public function fetchLatestPost()
     {
         try{
-            return $this->managePostApiService->getData()->sortByDesc('created_at'); 
+            return $this->managePostApiService->fetchLatestPostService(); 
         }catch(Exception $e)
         {
             Log::error('Fetch post function failed: '.$e->getMessage());
