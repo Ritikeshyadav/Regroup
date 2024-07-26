@@ -81,7 +81,7 @@ class ProfileDetailsApiController extends Controller
             $validator = Validator::make($request->all(), [
                 // 'email_address' => 'required|email|unique:iam_principal,email_address,' . auth()->user()->id,
                 'full_name' => 'required',
-                'profile_image' => 'mimes:jpeg,jpg,png,gif|max:2048',
+                'profile_image' => 'nullable|mimes:jpeg,jpg,png,gif|max:2048',
                 'user_name' => 'required',
                 'date_of_birth' => 'required',
                 'gender' => 'required',
