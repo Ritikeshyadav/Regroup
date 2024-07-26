@@ -56,6 +56,7 @@ class IndividualUserGuestViewService
     public function getBusinessUserGuestViewService($request)
     {
         try {
+            $myIamId = $request->iam_principal_id;
 
             $guestUserId = $request->query('guest_user_id');
             $data = IamPrincipal::select('id','principal_type_xid')->where('id', $guestUserId)->first();
@@ -69,7 +70,7 @@ class IndividualUserGuestViewService
                 return jsonResponseWithErrorMessageApi("User Not Found in Our Database", 500);
             }
             //the below code is Reusable From Individual -ProfileDetailsApiService
-            $getIndividualUserGuestViewData = $this->businessProfileDetailService->fetchBusinessProfileService($guestUserId);
+            $getIndividualUserGuestViewData = $this->businessProfileDetailService->fetchBusinessProfileService($guestUserId,$myIamId );
             return $getIndividualUserGuestViewData;
            
             // return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $getAccountSessions, 200);

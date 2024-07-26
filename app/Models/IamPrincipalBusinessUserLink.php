@@ -22,4 +22,9 @@ class IamPrincipalBusinessUserLink extends Model
     {
         return $this->belongsTo(BusinessTypes::class,'business_type_xid');
     }
+
+    public function iamPrincipalData()
+    {
+        return $this->hasOne(IamPrincipal::class,'id','iam_principal_xid')->withDefault();
+    }
 }

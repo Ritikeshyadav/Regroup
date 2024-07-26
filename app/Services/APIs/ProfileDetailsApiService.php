@@ -277,6 +277,7 @@ class ProfileDetailsApiService
             $formatData = (array) [
                 'id' => $data->id,
                 'user_name' => $data->user_name,
+                'location' => $data->address_line1,
                 // 'pin' => $data->pin,
                 'full_name' => $data->full_name,
                 'gender' => $data->gender,
