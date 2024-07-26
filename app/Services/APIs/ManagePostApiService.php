@@ -3,6 +3,7 @@
 namespace App\Services\APIs;
 
 use App\Models\IamPrincipalManageCommunityLink;
+use App\Models\IamPrincipalPinnedLink;
 use App\Models\IamPrincipalPostsLikesLink;
 use App\Models\LikeIcons;
 use App\Models\ManageCommunity;
@@ -114,7 +115,7 @@ class ManagePostApiService
     public function fetchPostService()
     {
         try{
-            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$this->getData(),200);
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'),$this->getData(true),200);
         }catch(Exception $e)
         {
             Log::error('Fetch post service failed: '.$e->getMessage());
@@ -127,9 +128,16 @@ class ManagePostApiService
      * Created At : 22 july 2024
      * Use : To fetch post
      */
-    public function getData()
+    public function getData($feed = false)
     {
         try{
+            // if($feed == true)
+            // {
+            //     $tags_xid = IamPrincipalPinnedLink::where('iam_principal_xid',auth()->user()->id)->get('manage_tags_xid');
+            //     $communities_xid = IamPrincipalPinnedLink::where('iam_principal_xid',auth()->user()->id)->get('manage_communities_xid');
+            //     $pin_user_xid = IamPrincipalPinnedLink::where('iam_principal_xid',auth()->user()->id)->get('pin_iam_principal_xid');
+            // }
+
             $followedCommunityId = IamPrincipalManageCommunityLink::where('iam_principal_xid',auth()->user()->id)->pluck('manage_community_xid');
             if($followedCommunityId == null)
             {
@@ -158,7 +166,10 @@ class ManagePostApiService
                 }
                 $post->tag_names = $tag_names;
             }
-
+            // if($feed == true)
+            // {
+            //     $data = collect($data)->orderBy;
+            // }
             return collect($data);
         }catch(Exception $e)
         {

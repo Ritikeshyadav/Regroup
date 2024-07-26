@@ -157,7 +157,7 @@ class ProfileDetailsApiController extends Controller
             $token = readHeaderToken();
             if($token)
             {
-                return $this->ProfileDetailsApiService->fetchProfileService($token['sub']);
+                return $this->ProfileDetailsApiService->fetchProfileService($token['sub'],null);
             }
             return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
         }catch(Exception $e)
@@ -167,14 +167,19 @@ class ProfileDetailsApiController extends Controller
         }
     }
 
-
-    public function myJoinedGroups()
+ /*
+     * Created By : Hritik
+     * Created At : 09 July 2024
+     * Use : To fetch user Joined Group
+    */
+    public function myJoinedGroups(Request $request)
     {
         try{
             $token = readHeaderToken();
             if($token)
             {
-                return $this->ProfileDetailsApiService->myJoinedGroupsApiSerice($token['sub']);
+               
+                return $this->ProfileDetailsApiService->myJoinedGroupsApiSerice($request);
             }
             return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
         }catch(Exception $e)
@@ -183,7 +188,35 @@ class ProfileDetailsApiController extends Controller
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
+ /*
+     * Created By : Hritik
+     * Created At : 24 July 2024
+     * Use : To fetch user Certification List setting
+    */
+    public function myCertificateLists(Request $request)
+    {
+        try {
+            $userId = $request->query('user_id');
 
+            if($userId == null){
+                return jsonResponseWithErrorMessageApi("Kindly Pass User Id in Query Params", 500);
+
+            }
+
+            $userCertifications = IamPrincipalCertifications::select('id', 'certification_name', 'certification_image', 'certification_reason', 'certification_date', 'iam_principal_xid')->where('iam_principal_xid', $userId)->get();
+            foreach ($userCertifications as $key => $val) {
+                $userCertifications[$key]['certification_image'] = ListingImageUrl('certifications', $val->certification_image);
+            }
+                    
+
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $userCertifications, 200);
+        } catch (Exception $e) {
+            Log::error('Fecth Certification of User service function failes: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    
     
     /*
      * Created By : Ritikesh Yadav

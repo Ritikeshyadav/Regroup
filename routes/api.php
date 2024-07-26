@@ -19,6 +19,7 @@ use App\Http\Controllers\APIs\ProfileDetailsApiController;
 
 use App\Http\Controllers\APIs\ManageGroupsApiController;
 use App\Http\Controllers\APIs\ManageCommunitiesApiController;
+use App\Http\Controllers\APIs\ManagePinnedApiController;
 use App\Http\Controllers\APIs\ManagePostsApiController;
 use App\Http\Controllers\APIs\TimeLineController;
 use Illuminate\Support\Facades\Route;
@@ -128,8 +129,9 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::get('/fetch-groups', [ManageGroupsApiController::class, 'fetchManageGroup']);
             Route::post('/select-groups', [ManageGroupsApiController::class, 'storeSelectedGroup']);
             Route::get('/search-group', [ManageGroupsApiController::class, 'seachGroup']);
-
-
+            
+            
+            Route::post('/create-group', [ManageGroupsApiController::class, 'createGroup']);
 
 
             //========================( Manage Communities API'S)=======================================//
@@ -186,6 +188,8 @@ Route::middleware(['BasicAuthApi'])->group(function () {
             Route::post('/store-certification', [ProfileDetailsApiController::class, 'storeCertification']);
             Route::post('/delete-certification', [ProfileDetailsApiController::class, 'deleteCertification']);
             Route::get('/my-joined-groups',[ProfileDetailsApiController::class, 'myJoinedGroups']);              
+            Route::get('/my-certificates',[ProfileDetailsApiController::class, 'myCertificateLists']);              
+            
             
             Route::controller(ManagePostsApiController::class)->group(function(){
 
@@ -206,6 +210,12 @@ Route::middleware(['BasicAuthApi'])->group(function () {
                 Route::post('delete-comment','deleteComment');
                 Route::post('delete-reply-on-comment','deleteReplyOnComment');
                 Route::post('fetch-comment-with-replied-comment','fetchCommentWithRepliedComment');
+            });
+
+            Route::controller(ManagePinnedApiController::class)->group(function(){
+                Route::get('fetch-pinned-detail','fetchPinnedDetails');
+                Route::get('fetch-communities-tags-to-pin','fetchDataForPinned');
+                Route::post('pin-unpin','pinUnpin');
             });
         });
     });

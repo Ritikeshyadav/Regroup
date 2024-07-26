@@ -10,6 +10,7 @@ use App\Models\IamPrincipalManageGroupLink;
 use App\Models\IamPrincipalManageSubGroupsLink;
 use App\Models\IamRole;
 use App\Models\IamPrincipalFollowers;
+use App\Models\ManageCommunityManageGroupsLink;
 use App\Models\ManageTimelines;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -208,7 +209,7 @@ class ProfileDetailsApiService
      * Created At : 09 July 2024
      * Use : To fetch profile service
      */
-    public function fetchProfileService($iamprincipal_id)
+    public function fetchProfileService($iamprincipal_id, $myId)
     {
         try {
             $data = IamPrincipal::with('interestsLink.interest')->where('id', $iamprincipal_id)->first();
@@ -222,21 +223,26 @@ class ProfileDetailsApiService
             }
 
             $getTimelines = ManageTimelines::select('id', 'club_name', 'role_name', 'team_name', 'start_date', 'end_date', 'abilities_xids')->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->where('is_active', 1)->get();
-            $myJoinedSubGroups = IamPrincipalManageSubGroupsLink::select('id', 'iam_principal_xid', 'manage_group_xid', 'manage_sub_group_xid')
-                ->with([
-                    'subGroupData' => function ($query) {
-                        $query->select('id', 'title', 'sub_group_image'); // Replace with the columns you need
-                    }
-                ])
-                ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
+            // $myJoinedSubGroups = IamPrincipalManageSubGroupsLink::select('id', 'iam_principal_xid', 'manage_group_xid', 'manage_sub_group_xid')
+            //     ->with([
+            //         'subGroupData' => function ($query) {
+            //             $query->select('id', 'title', 'sub_group_image'); // Replace with the columns you need
+            //         }
+            //     ])
+            //     ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
 
-                $myJoinedGroups = IamPrincipalManageGroupLink::select('id', 'iam_principal_xid', 'manage_group_xid')
+            $myJoinedGroups = IamPrincipalManageGroupLink::select('id', 'iam_principal_xid', 'manage_group_xid')
                 ->with([
                     'groupData' => function ($query) {
                         $query->select('id', 'title', 'group_image'); // Replace with the columns you need
                     }
                 ])
                 ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
+            foreach ($myJoinedGroups as $key => $item) {
+                if ($item->groupData) {
+                    $item->groupData->group_image = ListingImageUrl('group_image', $item->groupData->group_image);
+                }
+            }
             // dd( $myJoinedSubGroups );
 
 
@@ -259,6 +265,13 @@ class ProfileDetailsApiService
             $date2 = Carbon::parse($date2);
 
             $diffForHumans = $date2->diffInDays($date1);
+            $isIamFollowing=0;
+          
+            if($myId && $myId != null){
+
+                //iamprincipal_id  means Guest Account in GuestUser Service
+                $isIamFollowing =  IamPrincipalFollowers::where('iam_principal_xid', $myId)->where('following_iam_principal_xid',$iamprincipal_id)->first() ? 1: 0;
+            }
 
 
             $formatData = (array) [
@@ -280,10 +293,11 @@ class ProfileDetailsApiService
                 'follows' => $this->fetchFollowers($iamprincipal_id),
                 'timelines' => $getTimelines,
                 'account_visibility' => $data->is_account_visibility,
-                'my_joined_groups'=>$myJoinedGroups,
-                'my_joined_subgroups' => $myJoinedSubGroups,
+                'my_joined_groups' => $myJoinedGroups,
+                // 'my_joined_subgroups' => $myJoinedSubGroups,
                 'certifications' => $userCertifications,
-                'days_before_joined' => $diffForHumans
+                'days_before_joined' => $diffForHumans,
+                'is_iam_following_to_guest_user'=> $isIamFollowing
             ];
 
             return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $formatData, 200);
@@ -293,28 +307,40 @@ class ProfileDetailsApiService
         }
     }
 
- /* 
+    /* 
      * Created By : Hritik
      * Created At : 22 July 2024
      * Use : To fetch My joined Group service
      */
-    public function myJoinedGroupsApiSerice($iamprincipal_id)
+    public function myJoinedGroupsApiSerice($request)
     {
         try {
-            $data = IamPrincipal::with('interestsLink.interest')->where('id', $iamprincipal_id)->first();
-          
-                $myJoinedGroups = IamPrincipalManageGroupLink::select('id', 'iam_principal_xid', 'manage_group_xid')
+
+            $userId = $request->query('user_id');
+
+            if($userId == null){
+                return jsonResponseWithErrorMessageApi("Kindly Pass User Id in Query Params", 500);
+
+            }
+
+            $myJoinedGroups = IamPrincipalManageGroupLink::select('id', 'iam_principal_xid', 'manage_group_xid')
                 ->with([
                     'groupData' => function ($query) {
                         $query->select('id', 'title', 'group_image'); // Replace with the columns you need
                     }
                 ])
-                ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
+                ->where('iam_principal_xid', $userId )->orderByDesc('id')->get();
             // dd( $myJoinedSubGroups );
+            foreach ($myJoinedGroups as $key => $item) {
+                if ($item->groupData) {
+                    $item->groupData->group_image = ListingImageUrl('group_image', $item->groupData->group_image);
+                    $myJoinedGroups[$key]['my_joined_community_details'] = $this->getCommunityDataOfGroup($item->manage_group_xid);
+                    $myJoinedGroups[$key]['membersCount'] = IamPrincipalManageGroupLink::where('manage_group_xid',$item->manage_group_xid)->count();
+                    $myJoinedGroups[$key]['members_profile_photos'] = $this->getProfilePhotosOfAllUsersInGroup($item->manage_group_xid);
 
+                }
 
-          
-
+            }
             return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $myJoinedGroups, 200);
         } catch (Exception $e) {
             Log::error('Fetch Joined Groups profile service function failes: ' . $e->getMessage());
@@ -322,7 +348,28 @@ class ProfileDetailsApiService
         }
     }
 
+    public function getCommunityDataOfGroup($groupId)
+    {
+        $communityandGroupLinkData = ManageCommunityManageGroupsLink::select('id', 'manage_group_xid', 'manage_community_xid')->with([
+            'communityData' => function ($query) {
+                $query->select('id', 'community_name'); // Replace with the columns you need
+            }
+        ])->where('manage_group_xid', $groupId)->first();
+        return $communityandGroupLinkData;
+    }
+    public function getProfilePhotosOfAllUsersInGroup($groupId)
+    {
+        $profilePhotos = IamPrincipalManageGroupLink::where('manage_group_xid',$groupId)->pluck('iam_principal_xid'); 
+        $userProfile = IamPrincipal::select('id','profile_photo')->whereIn('id',$profilePhotos)->get();
+        foreach($userProfile as $key => $userProfileItem){
+            $userProfile[$key]['profile_photo'] = ListingImageUrl('profile_photos',$userProfileItem->profile_photo);
+        }
+        return $userProfile;
+    }
+
+
     
+
 
     /* 
      * Created By : Ritikesh Yadav
@@ -424,22 +471,22 @@ class ProfileDetailsApiService
                 'blockedProfile',
                 function ($query) use ($search) {
                     $query->when($search != null, function ($q) use ($search) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                         $q->where('user_name', 'like', '%' . $search . '%');
                         $q->orWhere('full_name', 'like', '%' . $search . '%');
                     }, function ($q) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                     });
                 }
             )
                 ->with([
                     'blockedProfile' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                         });
                     }
                 ])
@@ -468,21 +515,21 @@ class ProfileDetailsApiService
             $search = $request->search;
             $followers = IamPrincipalFollowers::whereHas('follower', function ($query) use ($search) {
                 $query->when($search != null, function ($q) use ($search) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                     $q->where('user_name', 'like', '%' . $search . '%');
                     $q->orWhere('full_name', 'like', '%' . $search . '%');
                 }, function ($q) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                 });
             })
                 ->with([
                     'follower' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                         });
                     }
                 ])
@@ -513,21 +560,21 @@ class ProfileDetailsApiService
             $search = $request->search;
             $following = IamPrincipalFollowers::whereHas('following', function ($query) use ($search) {
                 $query->when($search != null, function ($q) use ($search) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                     $q->where('user_name', 'like', '%' . $search . '%');
                     $q->orWhere('full_name', 'like', '%' . $search . '%');
                 }, function ($q) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                 });
             })
                 ->with([
                     'following' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo','principal_type_xid');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                         });
                     }
                 ])
