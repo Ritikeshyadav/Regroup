@@ -51,7 +51,7 @@ class BusinessProfileDetailsApiService
                 ]
             );
 
-            $iamPrincipalData = IamPrincipal::where('id', $iamprincipal_id)->update(['is_profile_updated' => 1]);
+            $iamPrincipalData = IamPrincipal::where('id', $iamprincipal_id)->update(['is_profile_updated' => 1,'user_name'=>$request->business_owner_name]);
             DB::commit();
             // $responseData['profile'] = $profileData;
             // $responseData['iam_principal_data'] = $iamPrincipalData;
@@ -197,7 +197,7 @@ class BusinessProfileDetailsApiService
             if ($request->has('business_profile')) {
                 $img = saveSingleImageWithoutCrop($request->file('business_profile'), 'business_profile', $image_db);
                 $request['business_profile_image'] = $img;
-
+                IamPrincipal::where('id',$iamprincipal_id)->update(['profile_photo'=>$img]);
                 // remove profile_image key from request array
                 $newArray = \Illuminate\Support\Arr::except($request->all(), ['business_profile']);
             }
