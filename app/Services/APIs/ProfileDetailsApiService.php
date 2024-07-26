@@ -139,7 +139,7 @@ class ProfileDetailsApiService
                 $image_db = $userData->profile_photo;
             }
             if ($request->has('profile_image')) {
-                $img = saveSingleImageWithoutCrop($request->file('profile_image'), 'profile_image', $image_db);
+                $img = saveSingleImageWithoutCrop($request->file('profile_image'), 'profile_photos', $image_db);
                 $request['profile_photo'] = $img;
 
                 // remove profile_image key from request array

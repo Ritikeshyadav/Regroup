@@ -57,6 +57,6 @@ class IamPrincipal extends Authenticatable implements JWTSubject
     }
     public function getProfilePhotoAttribute($value)
     {
-        return $value != null ? ListingImageUrl(($this->principal_type == 1 ? 'profile_image':'business_profile'),$value) : null;
+        return $value != null ? ListingImageUrl(($this->principal_type == 1 ? 'profile_photos':'business_profile'),$value) : null;
     }
 }
