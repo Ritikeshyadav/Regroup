@@ -124,7 +124,7 @@ class BusinessUserProfileController extends Controller
                     'founded_on' => 'required',
                     'website_link' => 'required',
                     'business_location' => 'required',
-                    'des' => 'required',
+                    'bio' => 'required',
                     'business_profile' => 'nullable|mimes:jpeg,jpg,png,gif|max:2048',
                 ]);
 
