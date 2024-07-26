@@ -46,13 +46,13 @@ if (!function_exists('ListingImageUrl')) {
     {
         $src = '';
         $defaultImagePath = "";
-        if (!empty($imageName) && file_exists(storage_path('app/public/uploads/' . $type . '/' . $imageName))) {
-            $src =  'uploads/' . $type . '/' . $imageName . '?d=' . time();
+
+        if (!empty($imageName) && file_exists('storage/app/public/uploads/' . $type . '/' . $imageName)) {
+            $src =  'storage/app/public/uploads/' . $type . '/' . $imageName . '?d=' . time();
         } else {
-            //default image path
-            $src = "uploads/default_img.png?d=" . time();
+            $src = "storage/app/public/uploads/" . $type . '/' . $imageName;
         }
-        return Storage::url($src);
+        return url($src);
     }
 }
 
@@ -105,7 +105,8 @@ if (!function_exists('saveSingleImageWithoutCrop')) {
             $folderPath = storage_path('app/public/uploads/' . $path . '/');
 
             // Generate a unique image name
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            // $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $imageName = uniqid() . '.' . $image->getClientOriginalExtension(); //hritik has updated this on 22-07-2024
 
             // Move the uploaded image to the specified folder
             $image->move($folderPath, $imageName);

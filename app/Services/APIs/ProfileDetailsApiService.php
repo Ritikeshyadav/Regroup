@@ -5,9 +5,12 @@ namespace App\Services\APIs;
 use App\Models\Abilities;
 use App\Models\IamPrincipal;
 use App\Models\IamPrincipalBlockedProfile;
+use App\Models\IamPrincipalCertifications;
+use App\Models\IamPrincipalManageGroupLink;
 use App\Models\IamPrincipalManageSubGroupsLink;
 use App\Models\IamRole;
 use App\Models\IamPrincipalFollowers;
+use App\Models\ManageCommunityManageGroupsLink;
 use App\Models\ManageTimelines;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -16,6 +19,7 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Support\Facades\Hash;
 use App\Services\APIs\ManageInterestApiService;
+use Carbon\Carbon;
 
 class ProfileDetailsApiService
 {
@@ -54,29 +58,29 @@ class ProfileDetailsApiService
         }
     }
 
-    /**
-     * Created By : Chandan Yadav
-     * Created At : 08 April 2024
-     * Use : To fetch role master listing service
-     */
-    public function fetchRoleService()
-    {
-        try {
-            $data = IamRole::select('id', 'role_name')
-                ->where([['is_active', 1]])
-                ->get();
+    // /**
+    //  * Created By : Chandan Yadav
+    //  * Created At : 08 April 2024
+    //  * Use : To fetch role master listing service
+    //  */
+    // public function fetchRoleService()
+    // {
+    //     try {
+    //         $data = IamRole::select('id', 'role_name')
+    //             ->where([['is_active', 1]])
+    //             ->get();
 
-            if ($data == null) {
-                Log::info('role master data not found.');
-                return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
-            }
-            $responseData['result'] = $data;
-            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $responseData, 201);
-        } catch (Exception $ex) {
-            Log::error('fetch role master service function failed: ' . $ex->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
-        }
-    }
+    //         if ($data == null) {
+    //             Log::info('role master data not found.');
+    //             return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
+    //         }
+    //         $responseData['result'] = $data;
+    //         return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $responseData, 201);
+    //     } catch (Exception $ex) {
+    //         Log::error('fetch role master service function failed: ' . $ex->getMessage());
+    //         return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+    //     }
+    // }
 
     /**
      * Created By : Chandan Yadav
@@ -205,7 +209,7 @@ class ProfileDetailsApiService
      * Created At : 09 July 2024
      * Use : To fetch profile service
      */
-    public function fetchProfileService($iamprincipal_id)
+    public function fetchProfileService($iamprincipal_id, $myId)
     {
         try {
             $data = IamPrincipal::with('interestsLink.interest')->where('id', $iamprincipal_id)->first();
@@ -219,14 +223,29 @@ class ProfileDetailsApiService
             }
 
             $getTimelines = ManageTimelines::select('id', 'club_name', 'role_name', 'team_name', 'start_date', 'end_date', 'abilities_xids')->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->where('is_active', 1)->get();
-            $myJoinedSubGroups = IamPrincipalManageSubGroupsLink::select('id','iam_principal_xid','manage_group_xid','manage_sub_group_xid')
-            ->with(['subGroupData' => function ($query) {
-                $query->select('id','title','sub_group_image'); // Replace with the columns you need
-            }])
-           ->where('iam_principal_xid',$iamprincipal_id)->orderByDesc('id')->get();
+            // $myJoinedSubGroups = IamPrincipalManageSubGroupsLink::select('id', 'iam_principal_xid', 'manage_group_xid', 'manage_sub_group_xid')
+            //     ->with([
+            //         'subGroupData' => function ($query) {
+            //             $query->select('id', 'title', 'sub_group_image'); // Replace with the columns you need
+            //         }
+            //     ])
+            //     ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
+
+            $myJoinedGroups = IamPrincipalManageGroupLink::select('id', 'iam_principal_xid', 'manage_group_xid')
+                ->with([
+                    'groupData' => function ($query) {
+                        $query->select('id', 'title', 'group_image'); // Replace with the columns you need
+                    }
+                ])
+                ->where('iam_principal_xid', $iamprincipal_id)->orderByDesc('id')->get();
+            foreach ($myJoinedGroups as $key => $item) {
+                if ($item->groupData) {
+                    $item->groupData->group_image = ListingImageUrl('group_image', $item->groupData->group_image);
+                }
+            }
             // dd( $myJoinedSubGroups );
-        
-          
+
+
             //for new release audio image
             foreach ($getTimelines as $key => $timeline) {
 
@@ -235,12 +254,35 @@ class ProfileDetailsApiService
                 $getTimelines[$key]['abilities'] = $abilities;
             }
 
+            $userCertifications = IamPrincipalCertifications::select('id', 'certification_name', 'certification_image', 'certification_reason', 'certification_date', 'iam_principal_xid')->where('iam_principal_xid', $iamprincipal_id)->get();
+            foreach ($userCertifications as $key => $val) {
+                $userCertifications[$key]['certification_image'] = ListingImageUrl('certifications', $val->certification_image);
+            }
+            $date1 = Carbon::now()->format('y-m-d');
+            $date2 = $data->created_at->format('y-m-d');
+
+            $date1 = Carbon::parse($date1);
+            $date2 = Carbon::parse($date2);
+
+            $diffForHumans = $date2->diffInDays($date1);
+            $isIamFollowing=0;
+          
+            if($myId && $myId != null){
+
+                //iamprincipal_id  means Guest Account in GuestUser Service
+                $isIamFollowing =  IamPrincipalFollowers::where('iam_principal_xid', $myId)->where('following_iam_principal_xid',$iamprincipal_id)->first() ? 1: 0;
+            }
+
+
             $formatData = (array) [
                 'id' => $data->id,
                 'user_name' => $data->user_name,
+                'location' => $data->address_line1,
                 // 'pin' => $data->pin,
                 'full_name' => $data->full_name,
                 'gender' => $data->gender,
+                'profile_photo' => ListingImageUrl('profile_photos', $data->profile_photo),
+
                 'date_of_birth' => $data->date_of_birth,
                 'interest' => $interestName,
                 'about' => $data->about,
@@ -251,8 +293,12 @@ class ProfileDetailsApiService
                 'batting_average' => $data->batting_average,
                 'follows' => $this->fetchFollowers($iamprincipal_id),
                 'timelines' => $getTimelines,
-                'account_visibility'=> $data->is_account_visibility,
-                'my_joined_subgroups'=>$myJoinedSubGroups
+                'account_visibility' => $data->is_account_visibility,
+                'my_joined_groups' => $myJoinedGroups,
+                // 'my_joined_subgroups' => $myJoinedSubGroups,
+                'certifications' => $userCertifications,
+                'days_before_joined' => $diffForHumans,
+                'is_iam_following_to_guest_user'=> $isIamFollowing
             ];
 
             return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $formatData, 200);
@@ -263,6 +309,70 @@ class ProfileDetailsApiService
     }
 
     /* 
+     * Created By : Hritik
+     * Created At : 22 July 2024
+     * Use : To fetch My joined Group service
+     */
+    public function myJoinedGroupsApiSerice($request)
+    {
+        try {
+
+            $userId = $request->query('user_id');
+
+            if($userId == null){
+                return jsonResponseWithErrorMessageApi("Kindly Pass User Id in Query Params", 500);
+
+            }
+
+            $myJoinedGroups = IamPrincipalManageGroupLink::select('id', 'iam_principal_xid', 'manage_group_xid')
+                ->with([
+                    'groupData' => function ($query) {
+                        $query->select('id', 'title', 'group_image'); // Replace with the columns you need
+                    }
+                ])
+                ->where('iam_principal_xid', $userId )->orderByDesc('id')->get();
+            // dd( $myJoinedSubGroups );
+            foreach ($myJoinedGroups as $key => $item) {
+                if ($item->groupData) {
+                    $item->groupData->group_image = ListingImageUrl('group_image', $item->groupData->group_image);
+                    $myJoinedGroups[$key]['my_joined_community_details'] = $this->getCommunityDataOfGroup($item->manage_group_xid);
+                    $myJoinedGroups[$key]['membersCount'] = IamPrincipalManageGroupLink::where('manage_group_xid',$item->manage_group_xid)->count();
+                    $myJoinedGroups[$key]['members_profile_photos'] = $this->getProfilePhotosOfAllUsersInGroup($item->manage_group_xid);
+
+                }
+
+            }
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $myJoinedGroups, 200);
+        } catch (Exception $e) {
+            Log::error('Fetch Joined Groups profile service function failes: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    public function getCommunityDataOfGroup($groupId)
+    {
+        $communityandGroupLinkData = ManageCommunityManageGroupsLink::select('id', 'manage_group_xid', 'manage_community_xid')->with([
+            'communityData' => function ($query) {
+                $query->select('id', 'community_name'); // Replace with the columns you need
+            }
+        ])->where('manage_group_xid', $groupId)->first();
+        return $communityandGroupLinkData;
+    }
+    public function getProfilePhotosOfAllUsersInGroup($groupId)
+    {
+        $profilePhotos = IamPrincipalManageGroupLink::where('manage_group_xid',$groupId)->pluck('iam_principal_xid'); 
+        $userProfile = IamPrincipal::select('id','profile_photo')->whereIn('id',$profilePhotos)->get();
+        foreach($userProfile as $key => $userProfileItem){
+            $userProfile[$key]['profile_photo'] = ListingImageUrl('profile_photos',$userProfileItem->profile_photo);
+        }
+        return $userProfile;
+    }
+
+
+    
+
+
+    /* 
      * Created By : Ritikesh Yadav
      * Created At : 09 July 2024
      * Use : To fetch profile service
@@ -270,8 +380,17 @@ class ProfileDetailsApiService
     public function fetchFollowers($iamprincipal_id)
     {
         try {
-            $data['following'] = IamPrincipalFollowers::where('iam_principal_xid', $iamprincipal_id)->count();
-            $data['followers'] = IamPrincipalFollowers::where('following_iam_principal_xid', $iamprincipal_id)->count();
+            //updated by hritik on 19th July ,2024
+            // ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))
+
+
+            $data['following'] = IamPrincipalFollowers::where('iam_principal_xid', $iamprincipal_id)
+                ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))
+                ->count();
+
+            // ->count();
+            $data['followers'] = IamPrincipalFollowers::where('following_iam_principal_xid', $iamprincipal_id)
+                ->whereNotIn('iam_principal_xid', IamPrincipalBlockedProfile::where('iam_principal_xid', $iamprincipal_id)->pluck('blocked_iam_principal_xid'))->count();
             return $data;
         } catch (Exception $e) {
             Log::error('Fetch follower service function failed: ' . $e->getMessage());
@@ -353,22 +472,22 @@ class ProfileDetailsApiService
                 'blockedProfile',
                 function ($query) use ($search) {
                     $query->when($search != null, function ($q) use ($search) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                         $q->where('user_name', 'like', '%' . $search . '%');
                         $q->orWhere('full_name', 'like', '%' . $search . '%');
                     }, function ($q) {
-                        $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                        $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                     });
                 }
             )
                 ->with([
                     'blockedProfile' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                         });
                     }
                 ])
@@ -397,21 +516,21 @@ class ProfileDetailsApiService
             $search = $request->search;
             $followers = IamPrincipalFollowers::whereHas('follower', function ($query) use ($search) {
                 $query->when($search != null, function ($q) use ($search) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                     $q->where('user_name', 'like', '%' . $search . '%');
                     $q->orWhere('full_name', 'like', '%' . $search . '%');
                 }, function ($q) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                 });
             })
                 ->with([
                     'follower' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                         });
                     }
                 ])
@@ -442,21 +561,21 @@ class ProfileDetailsApiService
             $search = $request->search;
             $following = IamPrincipalFollowers::whereHas('following', function ($query) use ($search) {
                 $query->when($search != null, function ($q) use ($search) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                     $q->where('user_name', 'like', '%' . $search . '%');
                     $q->orWhere('full_name', 'like', '%' . $search . '%');
                 }, function ($q) {
-                    $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                    $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                 });
             })
                 ->with([
                     'following' => function ($query) use ($search) {
                         $query->when($search != null, function ($q) use ($search) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                             $q->where('user_name', 'like', '%' . $search . '%');
                             $q->orWhere('full_name', 'like', '%' . $search . '%');
                         }, function ($q) {
-                            $q->select('id', 'user_name', 'full_name', 'profile_photo');
+                            $q->select('id', 'user_name', 'full_name', 'profile_photo', 'principal_type_xid');
                         });
                     }
                 ])
@@ -556,4 +675,39 @@ class ProfileDetailsApiService
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
+
+    /**
+     * Created By : Hritik
+     * Created At : 19 July 2024
+     * Use : To Store Certification
+     */
+    public function storeCertificationOfUserService($request)
+    {
+        try {
+            DB::beginTransaction();
+
+            $certificationImage = $request->file('certification_image');
+            $certificationImagePath = saveSingleImageWithoutCrop($certificationImage, 'certifications', null);
+
+
+            $certificationData = IamPrincipalCertifications::create(
+                [
+                    'iam_principal_xid' => $request->iam_principal_xid,
+                    'certification_name' => $request->certification_name,
+                    'certification_reason' => $request->certification_reason,
+                    'certification_image' => $certificationImagePath,
+                    'certification_date' => $request->certification_date,
+                ]
+            );
+            DB::commit();
+
+            return jsonResponseWithSuccessMessageApi(__('success.save_data'), $certificationData, 201);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Store Certification service failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+
 }

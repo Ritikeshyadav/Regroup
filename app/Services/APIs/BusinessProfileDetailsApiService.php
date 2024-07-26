@@ -6,6 +6,7 @@ use App\Mail\ForgotPasswordOtp;
 use App\Mail\SendOtp;
 use App\Models\IamPrincipal;
 use App\Models\IamPrincipalBusinessUserLink;
+use App\Models\IamPrincipalFollowers;
 use App\Models\IamPrincipalOtp;
 use Carbon\Carbon;
 use Exception;
@@ -40,13 +41,13 @@ class BusinessProfileDetailsApiService
 
 
             $profileData = IamPrincipalBusinessUserLink::updateOrCreate(
-                ['id' => $iamprincipal_id],
+                ['iam_principal_xid' => $iamprincipal_id],
                 [
                     'business_type_xid' => $request->business_type_xid,
                     'business_owner_name' => $request->business_owner_name,
                     'business_name' => $request->business_name,
                     'business_location' => $request->business_location,
-                    'iam_principal_xid' => $iamprincipal_id
+                    // 'iam_principal_xid' => $iamprincipal_id
                 ]
             );
 
@@ -91,7 +92,7 @@ class BusinessProfileDetailsApiService
 
 
             $profileData = IamPrincipalBusinessUserLink::updateOrCreate(
-                ['id' => $iamprincipal_id],
+                ['iam_principal_xid' => $iamprincipal_id],
                 [
                     'business_contact_number' => $request->business_contact_number,
                     'business_email' => $request->business_email,
@@ -102,7 +103,7 @@ class BusinessProfileDetailsApiService
                     'google_review_link' => $request->google_review_link,
                     'tags' => $request->tags,
                     'business_logo' => $businessLogo,
-                    'banner_image' =>$bannerImage,
+                    'banner_image' => $bannerImage,
 
 
                 ]
@@ -126,23 +127,52 @@ class BusinessProfileDetailsApiService
      * Created At : 10 July 2024
      * Use : To fetch business profile service 
      */
-    public function fetchBusinessProfileService($iamprincipal_id)
+    public function fetchBusinessProfileService($iamprincipal_id, $myId)
     {
-        try{
-            $data = IamPrincipalBusinessUserLink::with('businessType')
-            ->select('id','business_type_xid','business_owner_name','business_name','business_location','business_contact_number','business_email','business_handle','website_link','google_review_link','business_logo','tags','banner_image')
-            ->where('iam_principal_xid',$iamprincipal_id)
-            ->first();
+        try {
+            $data = IamPrincipalBusinessUserLink::with('businessType', 'iamPrincipalData')
+                ->select(
+                    'id',
+                    'iam_principal_xid',
+                    'business_type_xid',
+                    'business_owner_name',
+                    'business_name',
+                    'business_username',
+                    'business_location',
+                    'business_contact_number',
+                    'business_email',
+                    'business_handle',
+                    'website_link',
+                    'google_review_link',
+                    'business_logo',
+                    'tags',
+                    'banner_image',
+                    'business_profile_image',
+                    'bio'
+                )
+                ->where('iam_principal_xid', $iamprincipal_id)
+                ->first();
+
+            $data->business_logo = ListingImageUrl('business_logo', $data->business_logo);
+            $data->banner_image = ListingImageUrl('banner_image', $data->banner_image);
+            $data->business_profile_image = ListingImageUrl('business_profile', $data->business_profile_image);
+            $isIamFollowing =0;
+
+            if ($myId && $myId != null) {
+
+                //iamprincipal_id  means Guest Account in GuestUser Service
+                $isIamFollowing = IamPrincipalFollowers::where('iam_principal_xid', $myId)->where('following_iam_principal_xid', $iamprincipal_id)->first() ? 1 : 0;
+            }
             $data['follows'] = (new ProfileDetailsApiService)->fetchFollowers($iamprincipal_id);
+            $data['is_iam_following_to_guest_user'] = $isIamFollowing;
             if ($data == null) {
                 Log::info('business profile data not found.');
                 return jsonResponseWithSuccessMessageApi(__('success.data_not_found'), [], 422);
             }
-            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $data,200);
-        }catch(Exception $e)
-        {
-            Log::error('Fetch business profile service function failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $data, 200);
+        } catch (Exception $e) {
+            Log::error('Fetch business profile service function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -151,12 +181,12 @@ class BusinessProfileDetailsApiService
      * Created At : 10 July 2024
      * Use : To update business profile service 
      */
-    public function updateBusinessProfile($iamprincipal_id,$request)
+    public function updateBusinessProfile($iamprincipal_id, $request)
     {
-        try{
+        try {
             DB::beginTransaction();
             // getting old image
-            $businessData = IamPrincipalBusinessUserLink::where('iam_principal_xid',$iamprincipal_id)->first();
+            $businessData = IamPrincipalBusinessUserLink::where('iam_principal_xid', $iamprincipal_id)->first();
             if (isset($request->business_profile)) {
                 $image = $request->business_profile;
                 $image_db = null;
@@ -164,23 +194,21 @@ class BusinessProfileDetailsApiService
                 $image = null;
                 $image_db = $businessData->business_profile_image;
             }
-            if($request->has('business_profile'))
-            {
+            if ($request->has('business_profile')) {
                 $img = saveSingleImageWithoutCrop($request->file('business_profile'), 'business_profile', $image_db);
                 $request['business_profile_image'] = $img;
 
                 // remove profile_image key from request array
-                $newArray = \Illuminate\Support\Arr::except($request->all(),['business_profile']);
+                $newArray = \Illuminate\Support\Arr::except($request->all(), ['business_profile']);
             }
-            $businessData = IamPrincipalBusinessUserLink::where('iam_principal_xid',$iamprincipal_id)->update($newArray ?? $request->all());
+            $businessData = IamPrincipalBusinessUserLink::where('iam_principal_xid', $iamprincipal_id)->update($newArray ?? $request->all());
             DB::commit();
             return jsonResponseWithSuccessMessageApi(__('success.save_data'), $businessData, 201);
 
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Update business profile service function failed: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            Log::error('Update business profile service function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -189,12 +217,12 @@ class BusinessProfileDetailsApiService
      * Created At : 10 July 2024
      * Use : To send otp on mail for update password service 
      */
-    public function sendMailOtpForUpdatePasswordService($email,$iamprincipal_id)
+    public function sendMailOtpForUpdatePasswordService($email, $iamprincipal_id)
     {
-        try{
+        try {
             DB::beginTransaction();
             $otp = generateRandomOTP();
-            IamPrincipalOtp::updateOrCreate(['principal_xid'=>$iamprincipal_id],[
+            IamPrincipalOtp::updateOrCreate(['principal_xid' => $iamprincipal_id], [
                 'email_id' => $email,
                 'otp_code' => $otp,
                 'otp_purpose' => 'Update Password',
@@ -204,11 +232,10 @@ class BusinessProfileDetailsApiService
             DB::commit();
             Mail::to($email)->send(new UpdatePasswordOtp($otp));
             return jsonResponseWithSuccessMessageApi(__('success.otp_sent_successfully'), [], 200);
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Send mail otp for update password service function failed: '. $e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            Log::error('Send mail otp for update password service function failed: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 
@@ -217,23 +244,21 @@ class BusinessProfileDetailsApiService
      * Created At : 10 July 2024
      * Use : To verify otp for update password service 
      */
-    public function verifyOtpForUpdatePasswordService($iamprincipal_id,$request,$storedOtp)
+    public function verifyOtpForUpdatePasswordService($iamprincipal_id, $request, $storedOtp)
     {
-        try{
+        try {
             DB::beginTransaction();
-            
-            if($storedOtp->otp_code == $request->otp)
-            {
-                IamPrincipalOtp::where('principal_xid',$iamprincipal_id)->update(['is_used'=>1]);
-                IamPrincipal::where('id',$iamprincipal_id)->update(['password_hash'=>Hash::make($request->new_password)]);
+
+            if ($storedOtp->otp_code == $request->otp) {
+                IamPrincipalOtp::where('principal_xid', $iamprincipal_id)->update(['is_used' => 1]);
+                IamPrincipal::where('id', $iamprincipal_id)->update(['password_hash' => Hash::make($request->new_password)]);
                 DB::commit();
-                return jsonResponseWithSuccessMessageApi(__('success.update_data'),200);
+                return jsonResponseWithSuccessMessageApi(__('success.update_data'), 200);
             }
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Verify Otp for update password service function: '.$e->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+            Log::error('Verify Otp for update password service function: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
         }
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\APIs;
 
 use App\Http\Controllers\Controller;
+use App\Models\IamPrincipalCertifications;
 use App\Services\APIs\ProfileDetailsApiService;
 use Exception;
 use Illuminate\Http\Request;
@@ -47,26 +48,26 @@ class ProfileDetailsApiController extends Controller
         }
     }
 
-    /**
-     * Created By : Chandan Yadav
-     * Created At : 08 April 2024
-     * Use : To role master listing 
-     */
-    public function fetchRole(Request $request)
-    {
-        try {
-            $token = readHeaderToken();
-            if ($token) {
-                $iamprincipal_id = $token['sub'];
-                return $this->ProfileDetailsApiService->fetchRoleService($iamprincipal_id, $request);
-            } else {
-                return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
-            }
-        } catch (Exception $ex) {
-            Log::error('fetch role master function failed: ' . $ex->getMessage());
-            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
-        }
-    }
+    // /**
+    //  * Created By : Chandan Yadav
+    //  * Created At : 08 April 2024
+    //  * Use : To role master listing 
+    //  */
+    // public function fetchRole(Request $request)
+    // {
+    //     try {
+    //         $token = readHeaderToken();
+    //         if ($token) {
+    //             $iamprincipal_id = $token['sub'];
+    //             return $this->ProfileDetailsApiService->fetchRoleService($iamprincipal_id, $request);
+    //         } else {
+    //             return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+    //         }
+    //     } catch (Exception $ex) {
+    //         Log::error('fetch role master function failed: ' . $ex->getMessage());
+    //         return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+    //     }
+    // }
 
 
     /**
@@ -78,7 +79,7 @@ class ProfileDetailsApiController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'email_address' => 'required|email|unique:iam_principal,email_address,' . auth()->user()->id,
+                // 'email_address' => 'required|email|unique:iam_principal,email_address,' . auth()->user()->id,
                 'full_name' => 'required',
                 'profile_image' => 'mimes:jpeg,jpg,png,gif|max:2048',
                 'user_name' => 'required',
@@ -156,7 +157,7 @@ class ProfileDetailsApiController extends Controller
             $token = readHeaderToken();
             if($token)
             {
-                return $this->ProfileDetailsApiService->fetchProfileService($token['sub']);
+                return $this->ProfileDetailsApiService->fetchProfileService($token['sub'],null);
             }
             return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
         }catch(Exception $e)
@@ -166,6 +167,57 @@ class ProfileDetailsApiController extends Controller
         }
     }
 
+ /*
+     * Created By : Hritik
+     * Created At : 09 July 2024
+     * Use : To fetch user Joined Group
+    */
+    public function myJoinedGroups(Request $request)
+    {
+        try{
+            $token = readHeaderToken();
+            if($token)
+            {
+               
+                return $this->ProfileDetailsApiService->myJoinedGroupsApiSerice($request);
+            }
+            return jsonResponseWithErrorMessageApi(__('auth.you_have_already_logged_in'), 409);
+        }catch(Exception $e)
+        {
+            Log::error('Fetch myJoinedGroups function failed: '. $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+ /*
+     * Created By : Hritik
+     * Created At : 24 July 2024
+     * Use : To fetch user Certification List setting
+    */
+    public function myCertificateLists(Request $request)
+    {
+        try {
+            $userId = $request->query('user_id');
+
+            if($userId == null){
+                return jsonResponseWithErrorMessageApi("Kindly Pass User Id in Query Params", 500);
+
+            }
+
+            $userCertifications = IamPrincipalCertifications::select('id', 'certification_name', 'certification_image', 'certification_reason', 'certification_date', 'iam_principal_xid')->where('iam_principal_xid', $userId)->get();
+            foreach ($userCertifications as $key => $val) {
+                $userCertifications[$key]['certification_image'] = ListingImageUrl('certifications', $val->certification_image);
+            }
+                    
+
+            return jsonResponseWithSuccessMessageApi(__('success.data_fetched_successfully'), $userCertifications, 200);
+        } catch (Exception $e) {
+            Log::error('Fecth Certification of User service function failes: ' . $e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'), 500);
+        }
+    }
+
+    
+    
     /*
      * Created By : Ritikesh Yadav
      * Created At : 09 July 2024
@@ -371,4 +423,71 @@ class ProfileDetailsApiController extends Controller
             return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
         }
     }
+
+
+    /**
+     * Created By : Hritik
+     * Created At : 19 July 2024
+     * Use : To store Certifications
+     **/
+    public function storeCertification(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(),[
+                
+                'certification_name'=>'required',
+                'certification_reason'=>'required',
+                'certification_image'=>'required|mimes:png,jpg,jpeg|max:2048',
+                'certification_date'=>'required',
+                
+            ]);
+            if($validator->fails())
+            {
+                Log::info('Store Certification validation error: '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
+            }
+            $request['iam_principal_xid']= auth()->user()->id;
+            return $this->ProfileDetailsApiService->storeCertificationOfUserService($request);
+        }catch(Exception $e)
+        {
+            Log::error('Account visibility function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+
+  /**
+     * Created By : Hritik
+     * Created At : 19 July 2024
+     * Use : To store Certifications
+     **/
+    public function deleteCertification(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(),[
+                
+                'certification_id'=>'required|integer',
+                
+            ]);
+            if($validator->fails())
+            {
+                Log::info('Delete Certification validation error: '.$validator->errors());
+                return jsonResponseWithErrorMessageApi($validator->errors()->all(),403);
+            }
+            $request['iam_principal_xid']= auth()->user()->id;
+
+            $deleteCertification = IamPrincipalCertifications::where('id',$request->certification_id)->delete();
+            return jsonResponseWithSuccessMessageApi(__('success.delete'), [], 200);
+
+        }catch(Exception $e)
+        {
+            Log::error('Delete Certification function failed: '.$e->getMessage());
+            return jsonResponseWithErrorMessageApi(__('auth.something_went_wrong'),500);
+        }
+    }
+
+    
+
+
+    
 }
