@@ -139,7 +139,7 @@ class ProfileDetailsApiService
                 $image_db = $userData->profile_photo;
             }
             if ($request->has('profile_image')) {
-                $img = saveSingleImageWithoutCrop($request->file('profile_image'), 'profile_image', $image_db);
+                $img = saveSingleImageWithoutCrop($request->file('profile_image'), 'profile_photos', $image_db);
                 $request['profile_photo'] = $img;
 
                 // remove profile_image key from request array
@@ -213,6 +213,7 @@ class ProfileDetailsApiService
     {
         try {
             $data = IamPrincipal::with('interestsLink.interest')->where('id', $iamprincipal_id)->first();
+            // dd($data);
             $interestName = [];
             if ($data->interestsLink != null) {
                 foreach ($data->interestsLink as $interests) {
@@ -276,12 +277,13 @@ class ProfileDetailsApiService
 
             $formatData = (array) [
                 'id' => $data->id,
+                'principal_type_xid' => $data->principal_type_xid,
                 'user_name' => $data->user_name,
                 'location' => $data->address_line1,
                 // 'pin' => $data->pin,
                 'full_name' => $data->full_name,
                 'gender' => $data->gender,
-                'profile_photo' => ListingImageUrl('profile_photos', $data->profile_photo),
+                'profile_photo' => $data->profile_photo,
 
                 'date_of_birth' => $data->date_of_birth,
                 'interest' => $interestName,

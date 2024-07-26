@@ -125,7 +125,7 @@ class BusinessUserProfileController extends Controller
                     'website_link' => 'required',
                     'business_location' => 'required',
                     'bio' => 'required',
-                    'business_profile' => 'mimes:jpeg,jpg,png,gif|max:2048',
+                    'business_profile' => 'nullable|mimes:jpeg,jpg,png,gif|max:2048',
                 ]);
 
                 if ($validator->fails()) {

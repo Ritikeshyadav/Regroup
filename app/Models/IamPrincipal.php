@@ -48,4 +48,15 @@ class IamPrincipal extends Authenticatable implements JWTSubject
     {
         return $this->belongsTo(IamPrincipalType::class,'principal_type_xid');
     }
+
+    protected $principal_type;
+    public function getPrincipalTypeXidAttribute($value)
+    {
+        $this->principal_type = $value;
+        return $value;
+    }
+    public function getProfilePhotoAttribute($value)
+    {
+        return $value != null ? ListingImageUrl(($this->principal_type == 1 ? 'profile_photos':'business_profile'),$value) : null;
+    }
 }
